@@ -6,47 +6,52 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
+  font-family: 'Prompt' , sans-serif;
+  margin: 18px;
 }
 
 .schedule-container {
   display: flex;
-  border: 1px solid #ccc;
-  font-size: 16px;  /* bigger base font */
+  border: 1px solid #444;
+  font-size: 16px;  /* very big base font */
 }
 
 /* Left column stacks blank-cell and rooms vertically */
 .left-column {
   display: flex;
   flex-direction: column;
-  width: 140px; /* wider for bigger text */
+  width: 180px; /* wider for bigger text */
 }
 
 /* Blank top-left cell, matching height of time-labels */
 .blank-cell {
-  height: 50px; /* taller */
-  width: 100%;  /* full width of left column */
-  border-bottom: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  background: #f7f7f7;
+  height: 180px;
+  width: 100%;
+  border-bottom: 2px solid #444;
+  border-right: 2px solid #444;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
 }
 
 .rooms {
-  width: 140px; /* match left-column width */
-  border-right: 1px solid #ccc;
-  background: #f7f7f7;
+  width: 180px; /* match left-column width */
+  border-right: 1px solid #444;
+  background: #f0f0f0;
   display: flex;
   flex-direction: column;
 }
 
 .room {
-  height: 70px; /* taller for bigger text */
-  line-height: 70px;
-  padding-left: 15px;
-  border-bottom: 1px solid #ddd;
-  font-weight: 600;
-  font-size: 1.2rem;
+  height: 180px; /* ROOM */
+  line-height: 180px;
+  padding-left: 25px;
+  border-bottom: 1px solid #333;
+  font-weight: 700;
+  font-size: 24px;                 /*FONT ROOM*/
 }
 
 .timeline {
@@ -54,27 +59,35 @@ body {
   position: relative;
   overflow-x: auto;
   background: #fff;
-  border-left: 1px solid #ccc;
+  border-left: 1px solid #444;
 }
 
 .time-labels {
   display: flex;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #444;
   position: sticky;
   top: 0;
   background: #fff;
   z-index: 2;
-  height: 50px;  /* taller */
+  height: 180px;                       /* Table height */
   align-items: center;
 }
 
 .time-label {
-  flex: 0 0 120px; /* wider cells for hours 8-18 */
+  flex: 0 0 160px; /* very wide */
   text-align: center;
-  border-right: 1px solid #eee;
-  font-size: 1.1rem;
-  color: #333;
-  font-weight: 600;
+  border-right: 1px solid #444;
+  font-size: 30px;
+  color: #222;
+  font-weight: 700;
+}
+
+.hour-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #ddd; /* light line */
 }
 
 #roomRows {
@@ -84,22 +97,23 @@ body {
 
 .room-row {
   position: relative;
-  height: 70px; /* taller rows to fit bigger meeting blocks */
-  border-bottom: 1px solid #eee;
+  height: 180px;                               /* height */
+  border-bottom: 1px solid #444;
 }
 
 .meeting-block {
   position: absolute;
-  height: 55px;  /* taller */
-  top: 7px;
-  border-radius: 8px;
+  height: 140px;  /* very tall */
+  top: 20px;
+  border-radius: 14px;
   color: white;
-  padding: 8px 12px;
-  font-size: 1.1rem;
+  padding: 20px 24px;
+  font-size: 24px;
   cursor: pointer;
-  overflow-wrap: break-word; /* wrap text */
-  white-space: normal;       /* allow wrapping */
+  overflow-wrap: break-word;
+  white-space: normal;
   box-sizing: border-box;
-  text-shadow: 0 0 3px rgba(0,0,0,0.7);
+  text-shadow: 0 0 6px rgba(0,0,0,0.85);
   user-select: none;
+  z-index: 1;
 }

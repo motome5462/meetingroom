@@ -3,18 +3,21 @@
 <head>
   <title>Meeting Room Schedule</title>
   <link rel="stylesheet" type="text/css" href="/stylesheets/Display.css">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
 </head>
 <body style="background: rgb(216, 255, 152);">
 
-  <h2>Meeting Room Schedule</h2>
-
-  <label for="datePicker">Select Date: </label>
-  <input type="date" id="datePicker" style="margin-bottom: 12px; font-size: 16px; padding: 4px 8px;" />
+<div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 48px;">
+  <h2 style="font-size: 64px; font-weight: bold; margin-bottom: 16px;">Meeting Room Schedule</h2>
+  <input type="date" id="datePicker" style="font-size: 24px; padding: 10px 16px;" />
+</div>
 
   <div class="schedule-container">
     <!-- Left column: blank cell + rooms -->
     <div class="left-column">
-      <div class="blank-cell"></div>
+      <div class="blank-cell">
+        ห้องประชุม
+      </div>
       <div class="rooms" id="roomsCol">
         <!-- Rooms listed here -->
       </div>
@@ -23,7 +26,7 @@
     <!-- Timeline with time labels and room rows -->
     <div class="timeline" id="timeline">
       <div class="time-labels" id="timeLabels">
-        <!-- Time labels 0-23 -->
+        <!-- Time labels 8-18 -->
       </div>
       <div id="roomRows">
         <!-- Room rows for meetings -->

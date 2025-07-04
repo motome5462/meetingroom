@@ -1,6 +1,6 @@
 // Config
-const rooms = ['Room A', 'Room B', 'Room C'];
-const hourWidth = 194; // px per hour
+const rooms = ['ห้องประชุม 1', 'ห้องประชุม 2', 'ห้องประชุม 3'];
+const hourWidth = 192; // px per hour
 const startHour = 8;   // Start at 8:00
 const endHour = 19;    // End at 19:00 (exclusive)
 
@@ -21,6 +21,14 @@ for (let h = startHour; h < endHour; h++) {
   label.style.flex = `0 0 ${hourWidth}px`;
   label.textContent = `${h}:00`;
   timeLabels.appendChild(label);
+}
+
+const timeline = document.querySelector('.timeline');
+for (let h = startHour; h < endHour; h++) {
+  const line = document.createElement('div');
+  line.classList.add('hour-line');
+  line.style.left = `${(h - 8) * hourWidth}px`; // align with time labels
+  timeline.appendChild(line);
 }
 
 // Populate room rows container
@@ -82,8 +90,7 @@ function renderMeetings(meetings) {
     const firstName = m.employee?.name?.split(' ')[0] || "Unknown";
     const participantCount = m.participants ? m.participants.length : 0;
 
-    meetingDiv.title = `${m.employee.name} (${m.room})\n${new Date(m.datetimein).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(m.datetimeout).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-    meetingDiv.textContent = `${firstName} (${participantCount} participant${participantCount !== 1 ? 's' : ''}) ${m.purpose}`;
+     meetingDiv.innerHTML = `${m.purpose}<br>${m.employee.name} (${participantCount} participant${participantCount !== 1 ? 's' : ''})<br>${new Date(m.datetimein).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} น. - ${new Date(m.datetimeout).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} น.`;
 
     roomRow.appendChild(meetingDiv);
   });

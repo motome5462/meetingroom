@@ -6,47 +6,54 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Prompt' , sans-serif;
   margin: 40px;
 }
 
 .schedule-container {
   display: flex;
-  border: 1px solid #ccc;
-  font-size: 32px;  /* very big base font */
+  border: 2px solid #444; /* DARK border around the schedule */
+  font-size: 32px;
 }
 
 /* Left column stacks blank-cell and rooms vertically */
 .left-column {
   display: flex;
   flex-direction: column;
-  width: 180px; /* wider for bigger text */
+  width: 180px;
 }
 
 /* Blank top-left cell, matching height of time-labels */
 .blank-cell {
-  height: 200px; /* very tall */
-  width: 100%;  
-  border-bottom: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  background: #f7f7f7;
+  height: 220px;
+  width: 100%;
+  border-bottom: 2px solid #444;
+  border-right: 2px solid #444;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  font-weight: bold;
 }
 
 .rooms {
-  width: 180px; /* match left-column width */
-  border-right: 1px solid #ccc;
-  background: #f7f7f7;
+  width: 180px;
+  border-right: 2px solid #444; /* DARK line */
+  background: #f0f0f0;
   display: flex;
   flex-direction: column;
 }
 
 .room {
-  height: 200px; /* ROOM */
-  line-height: 200px;
-  padding-left: 25px;
-  border-bottom: 1px solid #ddd;
+  height: 220px;
+  line-height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 2px solid #333; /* DARKER row divider */
   font-weight: 700;
-  font-size: 2.0rem;                 /*FONT ROOM*/
+  font-size: 26px;
 }
 
 .timeline {
@@ -54,27 +61,36 @@ body {
   position: relative;
   overflow-x: auto;
   background: #fff;
-  border-left: 1px solid #ccc;
+  border-left: 2px solid #444; /* DARK border */
 }
 
 .time-labels {
   display: flex;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 2px solid #444; /* DARK bottom border */
   position: sticky;
   top: 0;
   background: #fff;
   z-index: 2;
-  height: 200px;                       /* Table height */
+  height: 220px;
   align-items: center;
 }
 
 .time-label {
-  flex: 0 0 80px; /* very wide */
+  flex: 0 0 80px;
   text-align: center;
-  border-right: 1px solid #eee;
-  font-size: 1.8rem;
-  color: #333;
+  border-right: 2px solid #444; /* DARK vertical divider */
+  font-size: 32px;
+  color: #222;
   font-weight: 700;
+}
+
+.hour-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #ddd; /* light line */
+
 }
 
 #roomRows {
@@ -84,22 +100,23 @@ body {
 
 .room-row {
   position: relative;
-  height: 200px;                               /* height */
-  border-bottom: 1px solid #eee;
+  height: 220px;
+  border-bottom: 2px solid #444; /* DARK row line */
 }
 
 .meeting-block {
   position: absolute;
-  height: 100px;  /* very tall */
+  height: 170px;
   top: 20px;
   border-radius: 14px;
   color: white;
   padding: 20px 24px;
-  font-size: 1.8rem;
+  font-size: 30px;
   cursor: pointer;
   overflow-wrap: break-word;
   white-space: normal;
   box-sizing: border-box;
   text-shadow: 0 0 6px rgba(0,0,0,0.85);
   user-select: none;
+  z-index: 1;
 }
