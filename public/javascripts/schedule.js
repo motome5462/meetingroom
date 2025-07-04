@@ -1,8 +1,8 @@
 // Config
 const rooms = ['ห้องประชุม 1', 'ห้องประชุม 2', 'ห้องประชุม 3'];
 const hourWidth = 200; // px per hour
-const startHour = 8;   // Start at 8:00
-const endHour = 19;    // End at 19:00 (exclusive)
+const startHour = 8;
+const endHour = 19;
 
 // Populate room names on left
 const roomsCol = document.getElementById('roomsCol');
@@ -13,7 +13,7 @@ rooms.forEach(room => {
   roomsCol.appendChild(div);
 });
 
-// Populate time labels 8-18 (10 hours)
+// Populate time labels
 const timeLabels = document.getElementById('timeLabels');
 for (let h = startHour; h < endHour; h++) {
   const label = document.createElement('div');
@@ -23,44 +23,45 @@ for (let h = startHour; h < endHour; h++) {
   timeLabels.appendChild(label);
 }
 
+// Hour vertical lines
 const timeline = document.querySelector('.timeline');
 for (let h = startHour; h < endHour; h++) {
   const line = document.createElement('div');
   line.classList.add('hour-line');
-  line.style.left = `${(h - 8) * hourWidth}px`; // align with time labels
+  line.style.left = `${(h - startHour) * hourWidth}px`;
   timeline.appendChild(line);
 }
 
-// Populate room rows container
+// Room rows
 const roomRows = document.getElementById('roomRows');
 rooms.forEach(room => {
   const row = document.createElement('div');
   row.classList.add('room-row');
   row.dataset.room = room;
-  row.style.width = `${(endHour - startHour) * hourWidth}px`; // width for 10 hours
+  row.style.width = `${(endHour - startHour) * hourWidth}px`;
   roomRows.appendChild(row);
 });
 
-// Helper to convert ISO datetime string to decimal hours offset by startHour
+// Helper: Convert ISO string to hours since startHour
 function timeToDecimalHours(timeStr) {
   const dt = new Date(timeStr);
-  return (dt.getHours() + dt.getMinutes() / 60) - startHour; // offset so 8:00 = 0px
+  return (dt.getHours() + dt.getMinutes() / 60) - startHour;
 }
 
-// Color palette for meetings
+// Meeting colors
 const colors = ['#3b82f6', '#f97316', '#10b981', '#ef4444', '#8b5cf6'];
 
-// Connect to Socket.IO server
+// Socket connection
 const socket = io();
 
-/// Function to clear existing meeting blocks
+// Clear all existing meetings
 function clearMeetings() {
   [...roomRows.children].forEach(row => {
     row.querySelectorAll('.meeting-block').forEach(mb => mb.remove());
   });
 }
 
-// Render meetings into schedule UI
+// Render meeting blocks
 function renderMeetings(meetings) {
   clearMeetings();
 
@@ -72,46 +73,50 @@ function renderMeetings(meetings) {
     const end = timeToDecimalHours(m.datetimeout);
     const duration = end - start;
 
-    // Only render if inside displayed hours range and duration positive
-    if (duration <= 0) return;
-    if (end <= 0 || start >= (endHour - startHour)) return; // outside visible range
+    if (duration <= 0 || end <= 0 || start >= (endHour - startHour)) return;
 
-    // Clamp position and width if partially outside range
     const clampedStart = Math.max(0, start);
     const clampedEnd = Math.min(endHour - startHour, end);
     const clampedDuration = clampedEnd - clampedStart;
 
+    const blockWidth = clampedDuration * hourWidth;
     const meetingDiv = document.createElement('div');
     meetingDiv.classList.add('meeting-block');
     meetingDiv.style.left = `${clampedStart * hourWidth}px`;
-    meetingDiv.style.width = `${clampedDuration * hourWidth}px`;
+    meetingDiv.style.width = `${blockWidth}px`;
     meetingDiv.style.backgroundColor = colors[i % colors.length];
 
+    // Adjust font size based on width
+    const fontSize = Math.max(16, Math.min(24, blockWidth / 16));
+    meetingDiv.style.fontSize = `${fontSize}px`;
 
+    const firstName = m.employee?.name?.split(' ')[0] || "Unknown";
     const participantCount = m.participants ? m.participants.length : 0;
 
-    meetingDiv.innerHTML = `${m.purpose}<br>${m.employee.name} (${participantCount} participant${participantCount !== 1 ? 's' : ''})<br>${new Date(m.datetimein).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} น. - ${new Date(m.datetimeout).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} น.`;
+    meetingDiv.innerHTML = `
+      ${m.purpose}<br>
+      ${m.employee.name} (${participantCount} participant${participantCount !== 1 ? 's' : ''})<br>
+      ${new Date(m.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น. - 
+      ${new Date(m.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น.
+    `;
 
     roomRow.appendChild(meetingDiv);
   });
 }
 
-// Date picker element (already in HTML)
+// Handle date picker
 const datePicker = document.getElementById('datePicker');
 const todayStr = new Date().toISOString().substring(0, 10);
 datePicker.value = todayStr;
 
-// Function to request schedule for a given date
 function requestSchedule(dateStr) {
   socket.emit('requestSchedule', { date: dateStr });
 }
 
-// On socket connect, request schedule for today's date
 socket.on('connect', () => {
   requestSchedule(todayStr);
 });
 
-// Listen for date changes and request new schedules
 datePicker.addEventListener('change', (e) => {
   const selectedDate = e.target.value;
   if (selectedDate) {
@@ -119,7 +124,7 @@ datePicker.addEventListener('change', (e) => {
   }
 });
 
-// Receive schedule updates from server
+// Receive schedule updates
 socket.on('scheduleUpdate', (meetings) => {
   renderMeetings(meetings);
 });
