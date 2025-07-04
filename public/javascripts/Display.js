@@ -1,6 +1,6 @@
 // Config
 const rooms = ['ห้องประชุม 1', 'ห้องประชุม 2', 'ห้องประชุม 3'];
-const hourWidth = 192; // px per hour
+const hourWidth = 205; // px per hour
 const startHour = 8;   // Start at 8:00
 const endHour = 19;    // End at 19:00 (exclusive)
 
