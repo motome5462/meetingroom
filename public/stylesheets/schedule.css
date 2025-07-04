@@ -1,0 +1,100 @@
+/* Box sizing reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.schedule-container {
+  display: flex;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Left column stacks blank-cell and rooms vertically */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  width: 100px; /* same width as rooms */
+}
+
+/* Blank top-left cell, matching height of time-labels */
+.blank-cell {
+  height: 30px; /* same height as time-labels */
+  width: 100%;  /* full width of left column */
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  background: #f7f7f7;
+}
+
+.rooms {
+  width: 100px;
+  border-right: 1px solid #ccc;
+  background: #f7f7f7;
+  display: flex;
+  flex-direction: column;
+}
+
+.room {
+  height: 50px;
+  line-height: 50px;
+  padding-left: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.timeline {
+  flex: 1;
+  position: relative;
+  overflow-x: auto;
+  background: #fff;
+  border-left: 1px solid #ccc;
+}
+
+.time-labels {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  height: 30px;
+  align-items: center;
+}
+
+.time-label {
+  flex: 0 0 60px;
+  text-align: center;
+  border-right: 1px solid #eee;
+  font-size: 12px;
+  color: #666;
+}
+
+#roomRows {
+  display: flex;
+  flex-direction: column;
+}
+
+.room-row {
+  position: relative;
+  height: 50px;
+  border-bottom: 1px solid #eee;
+}
+
+.meeting-block {
+  position: absolute;
+  height: 30px;
+  top: 10px;
+  border-radius: 4px;
+  color: white;
+  padding: 3px 6px;
+  font-size: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
