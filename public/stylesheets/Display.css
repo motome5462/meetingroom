@@ -119,4 +119,5 @@ body {
   text-shadow: 0 0 6px rgba(0,0,0,0.85);
   user-select: none;
   z-index: 1;
+  text-align: center;
 }
