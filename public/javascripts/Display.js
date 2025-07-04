@@ -1,6 +1,6 @@
 // Config
 const rooms = ['Room A', 'Room B', 'Room C'];
-const hourWidth = 205; // px per hour
+const hourWidth = 194; // px per hour
 const startHour = 8;   // Start at 8:00
 const endHour = 19;    // End at 19:00 (exclusive)
 

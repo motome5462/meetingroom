@@ -3,14 +3,15 @@ const router = express.Router();
 const Meeting = require('../models/meetinglist');
 const Employee = require('../models/employee');
 
+// GET: Render the insert form
 router.get('/', (req, res) => {
-  const success = req.query.success === '1';
-  res.render('insert', { success });
+  res.render('insert', { success: false });  // or whatever default
 });
 
+// POST: Handle meeting request submission
 router.post('/', async (req, res) => {
   try {
-    const {
+    let {
       employeeid,
       date,
       timein,
@@ -18,30 +19,39 @@ router.post('/', async (req, res) => {
       room,
       participants = [],
       purpose,
+      customPurpose,
       equipment,
       remark
     } = req.body;
 
+    // If user selected "อื่น ๆ" and provided a custom purpose, use that instead
+    if (purpose === 'อื่น ๆ' && customPurpose && customPurpose.trim() !== '') {
+      purpose = customPurpose.trim();
+    }
+
+    // continue with your existing logic...
     const datetimein = new Date(`${date}T${timein}`);
     const datetimeout = new Date(`${date}T${timeout}`);
 
     if (datetimein >= datetimeout) {
-      return res.status(400).send('เวลาเริ่มต้นต้องน้อยกว่าหมดเวลา');
+      return res.status(400).send('⛔ เวลาเริ่มต้นต้องน้อยกว่าหมดเวลา');
     }
 
-    // Find the requesting employee
     const employee = await Employee.findOne({ employeeid: parseInt(employeeid) });
     if (!employee) {
-      return res.status(400).send('ไม่พบพนักงานหลัก');
+      return res.redirect('/insert?error=employee');
     }
 
-    // Find participant employees by their IDs
-    const participantIds = Array.isArray(participants) ? participants : [participants];
+    // Normalize participants to array of valid integers
+    const rawIds = Array.isArray(participants) ? participants : [participants];
+    const participantIds = rawIds
+      .filter(id => id && id.trim() !== '')
+      .map(id => parseInt(id));
+
     const participantDocs = await Employee.find({
-      employeeid: { $in: participantIds.map(id => parseInt(id)) }
+      employeeid: { $in: participantIds }
     });
 
-    // Check for room conflict
     const conflict = await Meeting.findOne({
       room,
       datetimein: { $lt: datetimeout },
@@ -52,7 +62,6 @@ router.post('/', async (req, res) => {
       return res.status(400).send('❌ ห้องนี้ถูกจองไว้แล้วในช่วงเวลานี้');
     }
 
-    // Save new meeting
     const meeting = new Meeting({
       employee: employee._id,
       datetimein,
@@ -67,7 +76,6 @@ router.post('/', async (req, res) => {
 
     await meeting.save();
 
-    // Emit real-time schedule update
     const io = req.app.get('io');
     const today = new Date().toISOString().substring(0, 10);
     const todayMeetings = await Meeting.find({
@@ -75,15 +83,18 @@ router.post('/', async (req, res) => {
         $gte: new Date(`${today}T00:00:00`),
         $lte: new Date(`${today}T23:59:59`)
       }
-    }).populate('employee').populate('participants').lean();
+    })
+      .populate('employee', 'name')
+      .populate('participants', 'name')
+      .lean();
 
     io.emit('scheduleUpdate', todayMeetings);
 
     res.redirect('/insert?success=1');
 
   } catch (err) {
-    console.error(err);
-    res.status(500).send('เกิดข้อผิดพลาด');
+    console.error('❌ Meeting Insert Error:', err);
+    res.status(500).send('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
   }
 });
 

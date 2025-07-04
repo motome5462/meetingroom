@@ -37,12 +37,21 @@ socket.on('requestSchedule', async ({ date } = {}) => {
   const start = new Date(`${selectedDate}T00:00:00`);
   const end = new Date(`${selectedDate}T23:59:59`);
 
-  const meetings = await Meeting.find({
-    datetimein: { $gte: start, $lte: end }
-  }).lean();
+  try {
+    const meetings = await Meeting.find({
+      datetimein: { $gte: start, $lte: end }
+    })
+    .populate('employee', 'name')            // populate organizer employee's name
+    .populate('participants', 'name')        // populate participants' names
+    .lean();
 
-  socket.emit('scheduleUpdate', meetings);
+    socket.emit('scheduleUpdate', meetings);
+  } catch (err) {
+    console.error('Error fetching meetings:', err);
+    socket.emit('scheduleUpdate', []);
+  }
 });
+
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);

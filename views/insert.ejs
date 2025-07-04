@@ -9,7 +9,12 @@
     <% include index.ejs %>
   </header>
 
+<% const safeSuccess = typeof success !== 'undefined' ? success : false; %>
 <div class="container mt-4">
+  <% if (safeSuccess) { %>
+    <div class="alert alert-success">✅ ส่งคำขอสำเร็จแล้ว</div>
+  <% } %>
+
 <form action="/insert" method="POST">
   <!-- Employee ID input -->
   <div class="mb-3">
@@ -61,15 +66,17 @@
   </div>
 
   <!-- Purpose -->
-  <div class="mb-3">
-    <label>วัตถุประสงค์</label>
-    <select class="form-select" name="purpose">
-      <option>ประชุมภายในองค์กร</option>
-      <option>ประชุมระหว่างองค์กร กับ หน่วยงาน</option>
-      <option>อบรม / สัมมนา</option>
-      <option>อื่น ๆ</option>
-    </select>
-  </div>
+<div class="mb-3">
+  <label>วัตถุประสงค์</label>
+  <select class="form-select" name="purpose" id="purposeSelect" required>
+    <option value="ประชุมภายในองค์กร">ประชุมภายในองค์กร</option>
+    <option value="ประชุมระหว่างองค์กร กับ หน่วยงาน">ประชุมระหว่างองค์กร กับ หน่วยงาน</option>
+    <option value="อบรม / สัมมนา">อบรม / สัมมนา</option>
+    <option value="อื่น ๆ">อื่น ๆ</option>
+  </select>
+
+  <input type="text" class="form-control mt-2" name="customPurpose" id="customPurposeInput" placeholder="ระบุวัตถุประสงค์อื่น ๆ" style="display:none;">
+</div>
 
   <!-- Equipment -->
   <div class="mb-3">
@@ -85,8 +92,8 @@
 
   <button type="submit" class="btn btn-primary">ส่งคำขอใช้ห้องประชุม</button>
 </form>
+</div>
 
-  </div>
-  <script src="/javascripts/insert.js"></script>
+<script src="/javascripts/insert.js"></script>
 </body>
 </html>
