@@ -17,9 +17,10 @@
 
 <form action="/insert" method="POST">
   <!-- Employee ID input -->
+   <h2 class="text-center mb-4">ฟอร์มการใช้ห้องประชุม</h2>
   <div class="mb-3">
     <label>รหัสพนักงานผู้ขอใช้ห้องประชุม (Employee ID)</label>
-    <input type="number" class="form-control" name="employeeid" required>
+    <input type="number" class="form-control" name="employeeid"  required  >
   </div>
 
   <!-- Date and Time Inputs -->
@@ -59,11 +60,12 @@
   <!-- Participants -->
 <div id="participantFields">
   <div class="input-group mb-2">
-    <input type="number" class="form-control" name="participants[]" placeholder="Employee ID">
-    <button type="button" class="btn btn-outline-danger" onclick="this.parentNode.remove()">ลบ</button>
+    <input type="number" class="form-control" name="participants[]" placeholder="รหัสพนักงาน">
+    <button type="button" class="btn btn-outline-danger" onclick="removeParticipant(this.parentNode)">ลบ</button>
   </div>
 </div>
-<button type="button" class="btn btn-secondary btn-sm" onclick="addParticipant()">➕ เพิ่มผู้เข้าร่วม</button>
+<button type="button" class="btn btn-primary btn-sm" onclick="addParticipant()">➕ เพิ่มผู้เข้าร่วม</button>
+
 
 
   <!-- Purpose -->
@@ -91,7 +93,9 @@
     <textarea class="form-control" name="remark" rows="3"></textarea>
   </div>
 
-  <button type="submit" class="btn btn-primary" style="margin-bottom: 25px;">ส่งคำขอใช้ห้องประชุม</button>
+  <div class="d-flex justify-content-center">
+  <button type="submit" class="btn btn-success px-4" style="margin-bottom: 25px;">ส่งคำขอใช้ห้องประชุม</button>
+</div>
 </form>
 </div>
 
