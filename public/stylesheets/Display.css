@@ -1,161 +1,270 @@
-/* Box sizing reset */
+:root {
+  --left-column-min-width: 80px;  /* min */
+  --left-column-default-width: 160px; /* default fallback */
+  --left-column-max-width: 180px;  /* max */
+  --left-font-min-size: 12px;
+  --total-hours: 10; /* 8:00 to 18:00 */
+  --cell-height: 240px;
+  --header-height: var(--cell-height);
+  --row-height: var(--cell-height);
+  --room-font-size: 18px;
+  --time-label-font-size: 18px;
+  --hour-width: 120px; /* updated dynamically */
+  --hour-min-width: 120px; /* minimum hour width */
+}
+
+/* Global box-sizing */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Prompt' , sans-serif;
-  margin: 40px;
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: 'Prompt', sans-serif;
+  background: rgb(216, 255, 152);
 }
 
-.schedule-container {
-  display: flex;
-  border: 2px solid #444; /* DARK border around the schedule */
-  font-size: 32px;
-  margin-left: 25px;
-}
-
-/* Left column stacks blank-cell and rooms vertically */
-.left-column {
-  display: flex;
-  flex-direction: column;
-  width: 180px;
-}
-
-/* Blank top-left cell, matching height of time-labels */
-.blank-cell {
-  height: 220px;
-  width: 100%;
-  border-bottom: 2px solid #444;
-  border-right: 2px solid #444;
-  background: #f0f0f0;
+/* Responsive header container for title and date input */
+.header-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 32px;
+  gap: 24px;
+  margin-top: 32px;
+  margin-bottom: 16px;
+  flex-wrap: wrap; /* wrap on small screens */
+}
+
+/* Responsive font size for heading */
+.header-container h2 {
   font-weight: bold;
+  margin: 0;
+  font-size: clamp(28px, 7vw, 64px);
+  line-height: 1.1;
+}
+
+/* Responsive font size for date input */
+#datePicker {
+  font-size: clamp(18px, 3vw, 24px);
+  padding: 14px 20px;
+  box-sizing: border-box;
+}
+
+/* Optional tweak for smaller screens */
+@media (max-width: 400px) {
+  .header-container h2 {
+    font-size: clamp(20px, 9vw, 48px);
+  }
+  #datePicker {
+    padding: 10px 14px;
+    font-size: clamp(16px, 3vw, 20px);
+  }
+}
+
+/* Schedule wrapper and container */
+.schedule-wrapper {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 2%;
+  height: calc(var(--header-height) + var(--row-height) * 3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 
+  Grid lines as background on the container to cover left column + timeline + header
+*/
+.schedule-container {
+  display: flex;
+  width: 100%;
+  height: calc(var(--header-height) + var(--row-height) * 3);
+  border: 1px solid #444;
+  user-select: none;
+  background: white;
+  position: relative;
+  overflow-x: hidden; /* horizontal scroll allowed */
+  overflow-y: hidden; /* no vertical scroll */
+
+  /* Grid lines background */
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent,
+      transparent calc(var(--hour-width) - 1px),
+      #ddd calc(var(--hour-width) - 1px),
+      #ddd var(--hour-width)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent calc(var(--row-height) - 1px),
+      #ddd calc(var(--row-height) - 1px),
+      #ddd var(--row-height)
+    );
+  background-size: var(--hour-width) var(--row-height);
+  background-position: var(--left-column-default-width) var(--header-height);
+  background-repeat: repeat;
+}
+
+/* Remove timeline grid background (moved to container) */
+.timeline::before {
+  content: none;
+}
+
+/* LEFT COLUMN */
+.left-column {
+  width: var(--left-column-default-width);
+  min-width: var(--left-column-min-width);
+  max-width: var(--left-column-max-width);
+  background: #f0f0f0;
+  border-right: 1px solid #ddd; /* match grid lines */
+  border-bottom: 1px solid #ddd;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.blank-cell {
+  height: var(--header-height);
+  line-height: var(--header-height);
+  text-align: center;
+  font-weight: 700;
+  font-size: clamp(var(--left-font-min-size), 2vw, 24px);
+  border-bottom: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  box-sizing: border-box;
 }
 
 .rooms {
-  width: 180px;
-  border-right: 2px solid #444; /* DARK line */
-  background: #f0f0f0;
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
 
 .room {
-  height: 220px;
-  line-height: 220px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-bottom: 2px solid #333; /* DARKER row divider */
+  height: var(--row-height);
+  line-height: var(--row-height);
+  padding-left: 20px;
   font-weight: 700;
-  font-size: 26px;
+  font-size: clamp(var(--left-font-min-size), 2vw, var(--room-font-size));
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
 }
 
+/* TIMELINE */
 .timeline {
-  flex: 1;
   position: relative;
   overflow-x: auto;
-  background: #fff;
-  border-left: 2px solid #444; /* DARK border */
-}
-
-.time-labels {
-  display: flex;
-  border-bottom: 2px solid #444; /* DARK bottom border */
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 2;
-  height: 220px;
-  align-items: center;
+  overflow-y: hidden;
+  white-space: nowrap;
+  height: 100%;
+  background: white;
+  border-left: 1px solid #ddd;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  font-size: 0;
+  scroll-behavior: smooth;
+  flex-grow: 1;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .time-label {
-  flex: 0 0 80px;
-  text-align: center;
-  border-right: 2px solid #444; /* DARK vertical divider */
-  font-size: 32px;
-  color: #222;
+  display: inline-block;
+  height: var(--header-height);
+  line-height: var(--header-height);
+  border-bottom: 1px solid #ddd;
+  border-right: 1px solid #ddd;
   font-weight: 700;
+  font-size: var(--time-label-font-size);
+  text-align: center;
+  background: white;
+  user-select: none;
+  box-sizing: border-box;
+  min-width: var(--hour-min-width);
+  width: var(--hour-width);
 }
 
-.hour-line {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background-color: #ddd; /* light line */
-
+.time-label:last-child {
+  border-right: none;
 }
 
-#roomRows {
-  display: flex;
-  flex-direction: column;
-}
-
-.room-row {
-  position: relative;
-  height: 220px;
-  border-bottom: 2px solid #444; /* DARK row line */
-}
-
+/* Meeting blocks */
 .meeting-block {
   position: absolute;
-  height: 170px;
-  top: 20px;
-  border-radius: 14px;
+  height: 100%;
+  top: 10%;
+  border-radius: 25px;
   color: white;
-  padding: 20px;
+  padding: 10px 16px;
   font-size: 24px;
   overflow: hidden;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
   box-sizing: border-box;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.85);
   user-select: none;
-  z-index: 1;
-  background-color: #3b82f6;
+  left: 0;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  z-index: 2;
+  display: flex;
+  align-items: center;
 }
 
-/* Scroll area container */
 .meeting-content-wrapper {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  display: flex;
+  align-items: center;
   position: relative;
 }
 
-/* Scrolling area with duplicated content */
 .meeting-content {
   display: flex;
-  flex-direction: row;
   animation: marquee 10s linear infinite;
-  position: absolute;
+  white-space: nowrap;
+  will-change: transform;
 }
 
-/* Each full 3-line block */
 .meeting-set {
   display: inline-block;
   white-space: nowrap;
-  padding-right: 80px; /* Small gap between duplicates */
+  padding-right: 80px;
 }
 
-/* Each line */
 .meeting-line {
   margin-bottom: 4px;
   line-height: 1.4;
 }
 
-/* Scroll animation */
 @keyframes marquee {
-  0% {
-    transform: translateX(0%);
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  :root {
+    --cell-height: 140px;
+    --room-font-size: 18px;
+    --time-label-font-size: 18px;
   }
-  100% {
-    transform: translateX(-50%);
+
+  .meeting-block {
+    font-size: 16px;
+    padding: 8px 10px;
+  }
+
+  .meeting-line {
+    font-size: 14px;
   }
 }

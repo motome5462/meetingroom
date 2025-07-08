@@ -1,39 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ Add this line -->
   <title>Meeting Room Schedule</title>
-  <link rel="stylesheet" type="text/css" href="/stylesheets/schedule.css">
+  <link rel="stylesheet" href="/stylesheets/schedule.css">
   <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
 </head>
 <body style="background: rgb(216, 255, 152);">
 <header class="no-print mb-4">
   <% include index.ejs %>
 </header>
-
-<div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 48px;">
-  <h2 style="font-size: 64px; font-weight: bold; margin-bottom: 16px;">Meeting Room Schedule</h2>
-  <input type="date" id="datePicker" style="font-size: 24px; padding: 10px 16px;" />
+<div class="header-container">
+  <h2>ตารางการประชุม</h2>
+  <input type="date" id="datePicker" />
 </div>
-
-  <div class="schedule-container">
-    <!-- Left column: blank cell + rooms -->
-    <div class="left-column">
-      <div class="blank-cell">
-        ห้องประชุม
+  <div class="schedule-wrapper">
+    <div class="schedule-container">
+      <!-- Left column: blank cell + rooms -->
+      <div class="left-column">
+        <div class="blank-cell">
+          ห้องประชุม
+        </div>
+        
+        <div class="rooms" id="roomsCol">
+          <!-- Rooms listed here -->
+        </div>
       </div>
-      <div class="rooms" id="roomsCol">
-        <!-- Rooms listed here -->
+      <!-- Timeline with time labels and meeting blocks -->
+      <div class="timeline" id="timeline">
+        <!-- Time labels will be inline-block elements here -->
+        <!-- Meeting blocks will be absolutely positioned inside this container -->
       </div>
-    </div>
-
-    <!-- Timeline with time labels and room rows -->
-    <div class="timeline" id="timeline">
-      <div class="time-labels" id="timeLabels">
-        <!-- Time labels 0-23 -->
-      </div>
-      <div id="roomRows">
-        <!-- Room rows for meetings -->
-      </div>
+      
     </div>
   </div>
 
