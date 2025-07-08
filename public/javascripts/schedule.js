@@ -91,7 +91,7 @@ function renderMeetings(meetings) {
 
     const meetingText = `
       <div class="meeting-line">${m.purpose}</div>
-      <div class="meeting-line">${m.employee.name} - (${participantCount} participant${participantCount !== 1 ? 's' : ''})</div>
+      <div class="meeting-line">${m.employee.name} - ผู้เข้าร่วมการประชุม ${participantCount} คน</div>
       <div class="meeting-line">
         ${new Date(m.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น. -
         ${new Date(m.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น.
