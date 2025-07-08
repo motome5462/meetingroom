@@ -86,18 +86,25 @@ function renderMeetings(meetings) {
     meetingDiv.style.width = `${blockWidth}px`;
     meetingDiv.style.backgroundColor = colors[i % colors.length];
 
-    // Adjust font size based on width
-    const fontSize = Math.max(16, Math.min(24, blockWidth / 16));
-    meetingDiv.style.fontSize = `${fontSize}px`;
 
-    const firstName = m.employee?.name?.split(' ')[0] || "Unknown";
     const participantCount = m.participants ? m.participants.length : 0;
 
+    const meetingText = `
+      <div class="meeting-line">${m.purpose}</div>
+      <div class="meeting-line">${m.employee.name} - (${participantCount} participant${participantCount !== 1 ? 's' : ''})</div>
+      <div class="meeting-line">
+        ${new Date(m.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น. -
+        ${new Date(m.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น.
+      </div>
+    `;
+
     meetingDiv.innerHTML = `
-      ${m.purpose}<br>
-      ${m.employee.name} (${participantCount} participant${participantCount !== 1 ? 's' : ''})<br>
-      ${new Date(m.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น. - 
-      ${new Date(m.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น.
+      <div class="meeting-content-wrapper">
+        <div class="meeting-content">
+          <div class="meeting-set">${meetingText}</div>
+          <div class="meeting-set">${meetingText}</div>
+        </div>
+      </div>
     `;
 
     roomRow.appendChild(meetingDiv);
@@ -124,7 +131,6 @@ datePicker.addEventListener('change', (e) => {
   }
 });
 
-// Receive schedule updates
 socket.on('scheduleUpdate', (meetings) => {
   renderMeetings(meetings);
 });
