@@ -1,96 +1,105 @@
+/* Root-level CSS variables for easy theming and layout control */
 :root {
-  --left-column-min-width: 84px;
-  --left-column-max-width: 168px;
-  --left-font-min-size: 16px;
-  --total-hours: 10;
-  --cell-height: 240px;
-  --header-height: var(--cell-height);
-  --row-height: var(--cell-height);
-  --room-font-size: 24px;
-  --time-label-font-size: 24px;
+  --left-column-min-width: 84px;       /* Minimum width of left column (rooms list) */
+  --left-column-max-width: 168px;      /* Maximum width of left column */
+  --left-font-min-size: 16px;          /* Minimum font size for left column text */
+  --total-hours: 10;                   /* Total hours displayed (for calculations, unused directly here) */
+  --cell-height: 240px;                /* Height of each row/cell (room and timeline rows) */
+  --header-height: var(--cell-height);/* Height of timeline header, same as cell height */
+  --row-height: var(--cell-height);   /* Height of each row in rooms and timeline */
+  --room-font-size: 24px;              /* Font size for room names */
+  --time-label-font-size: 24px;       /* Font size for timeline hour labels */
 
-  /* Dynamic hour width updated by JS */
-  --hour-width: 84px;
-  --hour-min-width: 84px;
+  /* Dynamic hour width, updated by JavaScript to fit container */
+  --hour-width: 84px;                  /* Width of one hour block on timeline */
+  --hour-min-width: 84px;              /* Minimum width for hour block */
 }
 
+/* Reset box-sizing for all elements and pseudo-elements to border-box for easier sizing */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+/* Set base styles for html and body */
 html,
 body {
   margin: 0;
   padding: 0;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  font-family: 'Prompt', sans-serif;
-  background: rgb(216, 255, 152);
+  height: 100vh;                      /* Full viewport height */
+  width: 100vw;                       /* Full viewport width */
+  overflow: hidden;                  /* Prevent scrollbars */
+  font-family: 'Prompt', sans-serif; /* Use Prompt font */
+  background: rgb(216, 255, 152);    /* Light green background color */
 }
 
+/* Container for header area with flex layout */
 .header-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 24px;
+  justify-content: center;           /* Center horizontally */
+  align-items: center;               /* Center vertically */
+  gap: 24px;                        /* Space between items */
   margin: 8px 0;
-  flex-wrap: wrap;
+  flex-wrap: wrap;                  /* Wrap items on smaller screens */
 }
 
+/* Header text styling */
 .header-container h2 {
   font-weight: bold;
   margin: 0;
-  font-size: clamp(40px, 8vw, 72px); /* Bigger header */
+  font-size: clamp(40px, 8vw, 72px); /* Responsive large header size */
   line-height: 1.1;
 }
 
+/* Date picker input styles */
 #datePicker {
-  font-size: clamp(22px, 4vw, 28px); /* Bigger date picker */
-  padding: 16px 24px;
+  font-size: clamp(22px, 4vw, 28px); /* Responsive font size */
+  padding: 16px 24px;                /* Comfortable padding */
 }
 
+/* Wrapper around schedule content; height set dynamically by JS */
 .schedule-wrapper {
   max-width: 100vw;
   margin: 0 auto;
   padding: 0 1vw;
-  /* height dynamically set by JS */
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden;                 /* Hide overflowing content */
 }
 
+/* Container holding left column (rooms) and timeline */
 .schedule-container {
   display: flex;
   width: 100%;
   height: 100%;
   border: 1px solid black;
-  user-select: none;
+  user-select: none;                /* Disable text selection */
   background: white;
   position: relative;
-  overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-x: hidden;              /* Hide horizontal overflow */
+  overflow-y: hidden;              /* Hide vertical overflow */
 }
 
+/* Left column showing room names */
 .left-column {
-  width: var(--left-column-default-width);
+  width: var(--left-column-default-width); /* Default width (likely set in JS or inline style) */
   min-width: var(--left-column-min-width);
   max-width: var(--left-column-max-width);
-  background: #f0f0f0;
-  border-right: 1px solid black;
-  border-bottom: 1px solid black;
+  background: #f0f0f0;              /* Light gray background */
+  border-right: 1px solid black;    /* Vertical border to separate timeline */
+  border-bottom: 1px solid black;   /* Bottom border */
   position: relative;
-  z-index: 10;
+  z-index: 10;                     /* Keep on top */
   display: flex;
   flex-direction: column;
   height: 100%;
-  flex-shrink: 0;
+  flex-shrink: 0;                  /* Prevent shrinking */
 }
 
+/* Blank cell used as header spacer or empty cells */
 .blank-cell {
-  height: var(--header-height);
+  height: var(--header-height);    /* Same height as header */
   line-height: var(--header-height);
   text-align: center;
   font-weight: 700;
@@ -101,72 +110,78 @@ body {
   padding: 0;
 }
 
+/* Container for rooms inside left column, fills vertical space */
 .rooms {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
 
+/* Each room's display row */
 .room {
   height: var(--row-height);
-  line-height: var(--row-height);
-  padding-left: 20px;
+  line-height: var(--row-height);  /* Vertically center text */
+  padding-left: 20px;              /* Left padding */
   font-weight: 700;
-  font-size: clamp(var(--left-font-min-size), 2vw, var(--room-font-size));
-  border-bottom: 1px solid black;
+  font-size: clamp(var(--left-font-min-size), 2vw, var(--room-font-size)); /* Responsive font size */
+  border-bottom: 1px solid black; /* Horizontal row divider */
 }
 
+/* Timeline container where hour labels and meeting blocks appear */
 .timeline {
   flex-grow: 1;
   flex-shrink: 1;
-  min-width: 0;
+  min-width: 0;                   /* Prevent growing beyond container */
   height: 100%;
-  white-space: nowrap;
-  overflow-x: hidden;
-  overflow-y: hidden;
+  white-space: nowrap;            /* Keep hour labels inline */
+  overflow-x: hidden;            /* Hide horizontal overflow */
+  overflow-y: hidden;            /* Hide vertical overflow */
   background: white;
-  font-size: 0;
-  scroll-behavior: smooth;
+  font-size: 0;                  /* Remove whitespace gaps between inline-blocks */
+  scroll-behavior: smooth;       /* Smooth scrolling (if enabled) */
   position: relative;
 }
 
+/* Timeline hour labels above the timeline */
 .time-label {
   display: inline-block;
   height: var(--header-height);
   line-height: var(--header-height);
-  border-left: 1px solid black;
-  border-bottom: 2px solid black;
+  border-left: 1px solid black;  /* Vertical divider between hours */
+  border-bottom: 2px solid black;/* Bottom border under header */
   font-weight: 700;
   font-size: var(--time-label-font-size);
   text-align: center;
   background: white;
-  user-select: none;
+  user-select: none;             /* Disable text selection */
   min-width: var(--hour-min-width);
-  width: var(--hour-width);
+  width: var(--hour-width);      /* Dynamic width controlled by JS */
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+/* Meeting block visual representation */
 .meeting-block {
   position: absolute;
-  top: 10%;
-  border-radius: 25px;
-  color: white;
-  padding: 10px 16px;
+  top: 10%;                     /* Small offset from top of row */
+  border-radius: 25px;          /* Rounded corners */
+  color: white;                 /* Text color */
+  padding: 10px 16px;           /* Inner spacing */
   font-size: 24px;
   overflow: hidden;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.85);
-  white-space: nowrap;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.85); /* Text shadow for readability */
+  white-space: nowrap;          /* Prevent line breaks */
   user-select: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  z-index: 2;
+  cursor: pointer;              /* Pointer cursor on hover */
+  transition: background-color 0.3s ease; /* Smooth background changes */
+  z-index: 2;                   /* Above grid but below header */
   display: flex;
   align-items: center;
-  height: 80%;
+  height: 80%;                  /* Slightly smaller than row height */
 }
 
+/* Wrapper for meeting content inside the block */
 .meeting-content-wrapper {
   width: 100%;
   height: 100%;
@@ -176,24 +191,28 @@ body {
   position: relative;
 }
 
+/* Meeting content with marquee (scrolling) animation */
 .meeting-content {
   display: flex;
-  animation: marquee 10s linear infinite;
+  animation: marquee 10s linear infinite; /* Scroll text horizontally */
   white-space: nowrap;
-  will-change: transform;
+  will-change: transform;                 /* Performance hint */
 }
 
+/* Each set of meeting text */
 .meeting-set {
   display: inline-block;
   white-space: nowrap;
-  padding-right: 80px;
+  padding-right: 80px; /* Space between repeated text for marquee */
 }
 
+/* Individual lines of meeting information */
 .meeting-line {
   margin-bottom: 4px;
   line-height: 1.4;
 }
 
+/* Keyframes for horizontal marquee animation */
 @keyframes marquee {
   0% {
     transform: translateX(0%);
@@ -203,12 +222,13 @@ body {
   }
 }
 
+/* Grid overlay showing hour and row separators */
 .grid-overlay {
   position: absolute;
   top: 0;
   left: 0;
-  pointer-events: none;
-  z-index: 1;
+  pointer-events: none;          /* Allow clicks to pass through */
+  z-index: 1;                   /* Behind meeting blocks */
   background: repeating-linear-gradient(
       to right,
       transparent,
@@ -223,8 +243,7 @@ body {
       black calc(var(--row-height) - 1px),
       black var(--row-height)
     );
-  border-left: 1px solid black;
-  border-bottom: 1px solid black;
-  /* height dynamically set by JS */
+  border-left: 1px solid black; /* Left border of grid */
+  border-bottom: 1px solid black; /* Bottom border of grid */
+  /* Height is set dynamically by JS to cover all rows */
 }
-
