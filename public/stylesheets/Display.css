@@ -1,6 +1,6 @@
 /* Root-level CSS variables for easy theming and layout control */
 :root {
-  --left-column-min-width: 84px;       /* Minimum width of left column (rooms list) */
+  --left-column-min-width: 170px;       /* Minimum width of left column (rooms list) */
   --left-column-max-width: 168px;      /* Maximum width of left column */
   --left-font-min-size: 16px;          /* Minimum font size for left column text */
   --total-hours: 10;                   /* Total hours displayed (for calculations, unused directly here) */
