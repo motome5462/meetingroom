@@ -1,19 +1,18 @@
 :root {
-  --left-column-min-width: 80px;  /* min */
-  --left-column-default-width: 160px; /* default fallback */
-  --left-column-max-width: 180px;  /* max */
+  --left-column-min-width: 80px;
+  --left-column-default-width: 160px;
+  --left-column-max-width: 180px;
   --left-font-min-size: 12px;
-  --total-hours: 10; /* 8:00 to 18:00 */
+  --total-hours: 10;
   --cell-height: 220px;
   --header-height: var(--cell-height);
   --row-height: var(--cell-height);
   --room-font-size: 18px;
   --time-label-font-size: 18px;
-  --hour-width: 120px; /* updated dynamically */
-  --hour-min-width: 120px; /* minimum hour width */
+  --hour-width: 240px;
+  --hour-min-width: 120px;
 }
 
-/* Global box-sizing */
 *,
 *::before,
 *::after {
@@ -27,17 +26,15 @@ html, body {
   background: rgb(216, 255, 152);
 }
 
-/* Responsive header container for title and date input */
 .header-container {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 24px;
   margin-bottom: 16px;
-  flex-wrap: wrap; /* wrap on small screens */
+  flex-wrap: wrap;
 }
 
-/* Responsive font size for heading */
 .header-container h2 {
   font-weight: bold;
   margin: 0;
@@ -45,14 +42,11 @@ html, body {
   line-height: 1.1;
 }
 
-/* Responsive font size for date input */
 #datePicker {
   font-size: clamp(18px, 3vw, 24px);
   padding: 14px 20px;
-  box-sizing: border-box;
 }
 
-/* Optional tweak for smaller screens */
 @media (max-width: 400px) {
   .header-container h2 {
     font-size: clamp(20px, 9vw, 48px);
@@ -63,7 +57,6 @@ html, body {
   }
 }
 
-/* Schedule wrapper and container */
 .schedule-wrapper {
   max-width: 100%;
   margin: 0 auto;
@@ -74,61 +67,31 @@ html, body {
   overflow: hidden;
 }
 
-/* 
-  Grid lines as background on the container to cover left column + timeline + header
-*/
 .schedule-container {
   display: flex;
   width: 100%;
   height: calc(var(--header-height) + var(--row-height) * 3);
-  border: 1px solid #444;
+  border: 1px solid black;
   user-select: none;
   background: white;
   position: relative;
-  overflow-x: auto; /* horizontal scroll allowed */
-  overflow-y: hidden; /* no vertical scroll */
-
-  /* Grid lines background */
-  background:
-    repeating-linear-gradient(
-      to right,
-      transparent,
-      transparent calc(var(--hour-width) - 1px),
-      #ddd calc(var(--hour-width) - 1px),
-      #ddd var(--hour-width)
-    ),
-    repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent calc(var(--row-height) - 1px),
-      #ddd calc(var(--row-height) - 1px),
-      #ddd var(--row-height)
-    );
-  background-size: var(--hour-width) var(--row-height);
-  background-position: var(--left-column-default-width) var(--header-height);
-  background-repeat: repeat;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
-/* Remove timeline grid background (moved to container) */
-.timeline::before {
-  content: none;
-}
-
-/* LEFT COLUMN */
 .left-column {
   width: var(--left-column-default-width);
   min-width: var(--left-column-min-width);
   max-width: var(--left-column-max-width);
   background: #f0f0f0;
-  border-right: 1px solid #ddd; /* match grid lines */
-  border-bottom: 1px solid #ddd;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
   position: relative;
   z-index: 10;
   display: flex;
   flex-direction: column;
   height: 100%;
   flex-shrink: 0;
-  box-sizing: border-box;
 }
 
 .blank-cell {
@@ -137,9 +100,10 @@ html, body {
   text-align: center;
   font-weight: 700;
   font-size: clamp(var(--left-font-min-size), 2vw, 24px);
-  border-bottom: 1px solid #ddd;
-  border-right: 1px solid #ddd;
+  border-bottom: 2px solid black;
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 .rooms {
@@ -154,11 +118,9 @@ html, body {
   padding-left: 20px;
   font-weight: 700;
   font-size: clamp(var(--left-font-min-size), 2vw, var(--room-font-size));
-  border-bottom: 1px solid #ddd;
-  box-sizing: border-box;
+  border-bottom: 1px solid black;
 }
 
-/* TIMELINE */
 .timeline {
   position: relative;
   overflow-x: auto;
@@ -166,36 +128,29 @@ html, body {
   white-space: nowrap;
   height: 100%;
   background: white;
-  border-left: 1px solid #ddd;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
   font-size: 0;
   scroll-behavior: smooth;
   flex-grow: 1;
-  box-sizing: border-box;
 }
 
 .time-label {
   display: inline-block;
   height: var(--header-height);
   line-height: var(--header-height);
-  border-bottom: 1px solid #ddd;
-  border-right: 1px solid #ddd;
+  border-left: 1px solid black;
+  border-bottom: 2px solid black;  /* Added for equal height */
   font-weight: 700;
   font-size: var(--time-label-font-size);
   text-align: center;
   background: white;
   user-select: none;
-  box-sizing: border-box;
   min-width: var(--hour-min-width);
   width: var(--hour-width);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.time-label:last-child {
-  border-right: none;
-}
-
-/* Meeting blocks */
 .meeting-block {
   position: absolute;
   height: 100%;
@@ -207,7 +162,6 @@ html, body {
   overflow: hidden;
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.85);
   white-space: nowrap;
-  box-sizing: border-box;
   user-select: none;
   left: 0;
   cursor: pointer;
@@ -249,7 +203,34 @@ html, body {
   100% { transform: translateX(-50%); }
 }
 
-/* Responsive adjustments */
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent,
+      transparent calc(var(--hour-width) - 1px),
+      black calc(var(--hour-width) - 1px),
+      black var(--hour-width)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent calc(var(--row-height) - 1px),
+      black calc(var(--row-height) - 1px),
+      black var(--row-height)
+    );
+  /* Remove border-left here */
+  border-left: 1px solid black;   
+  border-bottom: 1px solid black;   
+  width: calc((var(--total-hours) + 1) * var(--hour-width));
+  height: calc(var(--row-height) * 3);
+}
+
 @media (max-width: 768px) {
   :root {
     --cell-height: 140px;
