@@ -1,52 +1,59 @@
 :root {
-  --left-column-min-width: 80px;
-  --left-column-default-width: 160px;
-  --left-column-max-width: 180px;
-  --left-font-min-size: 12px;
-  --total-hours: 10;
-  --cell-height: 220px;
-  --header-height: var(--cell-height);
-  --row-height: var(--cell-height);
-  --room-font-size: 18px;
-  --time-label-font-size: 18px;
-  --hour-width: 240px;
-  --hour-min-width: 120px;
+  /* Layout control variables for flexible design */
+  --left-column-min-width: 80px;         /* Min width for room name column */
+  --left-column-default-width: 160px;    /* Default width for room column */
+  --left-column-max-width: 180px;        /* Max width for room column */
+  --left-font-min-size: 12px;            /* Minimum font size for left text */
+  --total-hours: 10;                     /* Number of hours shown on timeline */
+  --cell-height: 200px;                  /* Height for each header & row */
+  --header-height: var(--cell-height);   /* Height of timeline header */
+  --row-height: var(--cell-height);      /* Height of each room row */
+  --room-font-size: 18px;                /* Font size for room labels */
+  --time-label-font-size: 18px;          /* Font size for time labels */
+  --hour-width: 240px;                   /* Default width for each hour column */
+  --hour-min-width: 120px;               /* Minimum width for hour column */
 }
 
+/* Apply border-box sizing to all elements for easier layout calculations */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+/* Page base styles: remove margin, set font and background */
 html, body {
   margin: 0;
   height: 100%;
   font-family: 'Prompt', sans-serif;
-  background: rgb(216, 255, 152);
+  background: rgb(216, 255, 152);  /* Light green background */
 }
 
+/* Header section containing title and date picker */
 .header-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 24px;
+  gap: 24px;                   /* Space between title and date picker */
   margin-bottom: 16px;
-  flex-wrap: wrap;
+  flex-wrap: wrap;             /* Allow wrapping on small screens */
 }
 
+/* Header title styling */
 .header-container h2 {
   font-weight: bold;
   margin: 0;
-  font-size: clamp(28px, 7vw, 64px);
+  font-size: clamp(28px, 7vw, 64px);  /* Responsive size */
   line-height: 1.1;
 }
 
+/* Date picker styling */
 #datePicker {
   font-size: clamp(18px, 3vw, 24px);
   padding: 14px 20px;
 }
 
+/* Smaller devices adjustments */
 @media (max-width: 400px) {
   .header-container h2 {
     font-size: clamp(20px, 9vw, 48px);
@@ -57,28 +64,31 @@ html, body {
   }
 }
 
+/* Wrapper for entire schedule content */
 .schedule-wrapper {
   max-width: 100%;
   margin: 0 auto;
   padding: 0 2%;
-  height: calc(var(--header-height) + var(--row-height) * 3);
+  height: calc(var(--header-height) + var(--row-height) * 3);  /* header + 3 room rows */
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
+/* Container with left column and timeline */
 .schedule-container {
   display: flex;
   width: 100%;
   height: calc(var(--header-height) + var(--row-height) * 3);
   border: 1px solid black;
-  user-select: none;
   background: white;
+  user-select: none;
   position: relative;
-  overflow-x: auto;
+  overflow-x: auto;   /* Allow scrolling if timeline wider than screen */
   overflow-y: hidden;
 }
 
+/* Left column listing rooms */
 .left-column {
   width: var(--left-column-default-width);
   min-width: var(--left-column-min-width);
@@ -87,13 +97,14 @@ html, body {
   border-right: 1px solid black;
   border-bottom: 1px solid black;
   position: relative;
-  z-index: 10;
+  z-index: 10;       /* Keep above timeline grid */
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;   /* Don't shrink on small screens */
   height: 100%;
-  flex-shrink: 0;
 }
 
+/* Top left cell (blank) */
 .blank-cell {
   height: var(--header-height);
   line-height: var(--header-height);
@@ -101,67 +112,64 @@ html, body {
   font-weight: 700;
   font-size: clamp(var(--left-font-min-size), 2vw, 24px);
   border-bottom: 2px solid black;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
+/* Room names list */
 .rooms {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
 
+/* Single room row */
 .room {
   height: var(--row-height);
-  line-height: var(--row-height);
+  line-height: var(--row-height); /* Vertically center text */
   padding-left: 20px;
   font-weight: 700;
   font-size: clamp(var(--left-font-min-size), 2vw, var(--room-font-size));
   border-bottom: 1px solid black;
 }
 
+/* Timeline area: holds time labels and meetings */
 .timeline {
   position: relative;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
-  height: 100%;
-  background: white;
-  font-size: 0;
-  scroll-behavior: smooth;
   flex-grow: 1;
+  overflow-x: auto;    /* Enable scrolling horizontally */
+  overflow-y: hidden;
+  white-space: nowrap; /* Keep labels inline */
+  background: white;
+  font-size: 0;        /* Remove spacing between inline-blocks */
+  scroll-behavior: smooth;
 }
 
+/* Hour labels above timeline */
 .time-label {
   display: inline-block;
   height: var(--header-height);
   line-height: var(--header-height);
   border-left: 1px solid black;
-  border-bottom: 2px solid black;  /* Added for equal height */
+  border-bottom: 2px solid black;  /* bottom border same as header bottom */
   font-weight: 700;
   font-size: var(--time-label-font-size);
   text-align: center;
   background: white;
   user-select: none;
   min-width: var(--hour-min-width);
-  width: var(--hour-width);
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  width: var(--hour-width);        /* dynamic width from JS */
 }
 
+/* Meeting block positioned on timeline */
 .meeting-block {
   position: absolute;
-  height: 100%;
-  top: 10%;
+  top: 10%;                   /* Slightly below top to create margin */
+  height: 100%;               /* Adjusted by JS to fit row height */
   border-radius: 25px;
   color: white;
   padding: 10px 16px;
   font-size: 24px;
-  overflow: hidden;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.85);
   white-space: nowrap;
+  text-shadow: 0 0 4px rgba(0,0,0,0.85);
   user-select: none;
   left: 0;
   cursor: pointer;
@@ -171,6 +179,7 @@ html, body {
   align-items: center;
 }
 
+/* Inner wrapper to clip scrolling content */
 .meeting-content-wrapper {
   width: 100%;
   height: 100%;
@@ -180,6 +189,7 @@ html, body {
   position: relative;
 }
 
+/* Content inside meeting: animated scrolling text */
 .meeting-content {
   display: flex;
   animation: marquee 10s linear infinite;
@@ -187,27 +197,31 @@ html, body {
   will-change: transform;
 }
 
+/* Single set of meeting info for repeat scrolling */
 .meeting-set {
   display: inline-block;
   white-space: nowrap;
-  padding-right: 80px;
+  padding-right: 80px; /* space between repeats */
 }
 
+/* Text lines inside meeting */
 .meeting-line {
   margin-bottom: 4px;
   line-height: 1.4;
 }
 
+/* Marquee scrolling animation */
 @keyframes marquee {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
 }
 
+/* Grid overlay to show hour and row lines */
 .grid-overlay {
   position: absolute;
   top: 0;
   left: 0;
-  pointer-events: none;
+  pointer-events: none;       /* Allow clicking meetings below */
   z-index: 1;
   background:
     repeating-linear-gradient(
@@ -224,13 +238,13 @@ html, body {
       black calc(var(--row-height) - 1px),
       black var(--row-height)
     );
-  /* Remove border-left here */
-  border-left: 1px solid black;   
-  border-bottom: 1px solid black;   
+  border-left: 1px solid black;   /* left edge */
+  border-bottom: 1px solid black; /* bottom edge */
   width: calc((var(--total-hours) + 1) * var(--hour-width));
-  height: calc(var(--row-height) * 3);
+  height: calc(var(--row-height) * 3);   /* 3 rooms */
 }
 
+/* Medium screens: reduce sizes */
 @media (max-width: 768px) {
   :root {
     --cell-height: 140px;

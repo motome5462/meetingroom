@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,33 +8,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
 </head>
 <body style="background: rgb(216, 255, 152);">
-<header class="no-print mb-4">
-  <% include index.ejs %>
-</header>
-<div class="header-container">
-  <h2>ตารางการประชุม</h2>
-  <input type="date" id="datePicker" />
-</div>
+  <header class="mb-4">
+    <% include index.ejs %>
+  </header>
+
+  <div class="header-container">
+    <h2>ตารางการประชุม</h2>
+    <input type="date" id="datePicker" value="<%= selectedDate %>" />
+  </div>
+
   <div class="schedule-wrapper">
     <div class="schedule-container">
-      <!-- Left column: blank cell + rooms -->
+      <!-- Left column -->
       <div class="left-column">
-        <div class="blank-cell">
-          ห้องประชุม
-        </div>
-        
-        <div class="rooms" id="roomsCol">
-          <!-- Rooms listed here -->
-        </div>
+        <div class="blank-cell">ห้องประชุม</div>
+        <div class="rooms" id="roomsCol"></div>
       </div>
-      <!-- Timeline with time labels and meeting blocks -->
-      <div class="timeline" id="timeline">
-        <!-- Time labels will be inline-block elements here -->
-        <!-- Meeting blocks will be absolutely positioned inside this container -->
-      </div>
-      
+
+      <!-- Timeline -->
+      <div class="timeline" id="timeline"></div>
     </div>
   </div>
+
+  <script>
+    // Make selectedDate available to frontend JS
+    const selectedDateFromServer = "<%= selectedDate %>";
+  </script>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/javascripts/schedule.js"></script>

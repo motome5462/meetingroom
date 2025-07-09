@@ -2,33 +2,38 @@
 <html>
 <head>
   <title>Meeting Room Request</title>
+  <!-- ✅ Include Bootstrap CSS for styling -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
 </head>
 <body>
-  <header class="no-print mb-4">
-    <% include index.ejs %>
+  <header class="mb-4">
+    <% include index.ejs %> <!-- ✅ Include shared header/navigation -->
   </header>
 
 <% const safeSuccess = typeof success !== 'undefined' ? success : false; %>
 <div class="container mt-4">
+  <!-- ✅ Show success alert if form submitted successfully -->
   <% if (safeSuccess) { %>
     <div class="alert alert-success">✅ ส่งคำขอสำเร็จแล้ว</div>
   <% } %>
 
 <form action="/insert" method="POST">
-  <!-- Employee ID input -->
-   <h2 class="text-center mb-4">ฟอร์มการใช้ห้องประชุม</h2>
+  <!-- ✅ Form title -->
+  <h2 class="text-center mb-4">ฟอร์มการใช้ห้องประชุม</h2>
+
+  <!-- ✅ Employee ID input -->
   <div class="mb-3">
     <label>รหัสพนักงานผู้ขอใช้ห้องประชุม (Employee ID)</label>
-    <input type="number" class="form-control" name="employeeid"  required  >
+    <input type="number" class="form-control" name="employeeid" required>
   </div>
 
-  <!-- Date and Time Inputs -->
+  <!-- ✅ Date input -->
   <div class="mb-3">
     <label>วันที่ต้องการใช้</label>
     <input type="date" class="form-control" name="date" required>
   </div>
 
+  <!-- ✅ Time range inputs -->
   <div class="row mb-3">
     <div class="col">
       <label>เวลาตั้งแต่</label>
@@ -40,7 +45,7 @@
     </div>
   </div>
 
-  <!-- Room Selection -->
+  <!-- ✅ Room selection radio buttons -->
   <div class="mb-3">
     <label>เลือกห้อง</label><br/>
     <div class="form-check form-check-inline">
@@ -57,48 +62,48 @@
     </div>
   </div>
 
-  <!-- Participants -->
-<div id="participantFields">
-  <div class="input-group mb-2">
-    <input type="number" class="form-control" name="participants[]" placeholder="รหัสพนักงาน">
-    <button type="button" class="btn btn-outline-danger" onclick="removeParticipant(this.parentNode)">ลบ</button>
+  <!-- ✅ Participants dynamic field: can add/remove -->
+  <div id="participantFields">
+    <div class="input-group mb-2">
+      <input type="number" class="form-control" name="participants[]" placeholder="รหัสพนักงาน">
+      <button type="button" class="btn btn-outline-danger" onclick="removeParticipant(this.parentNode)">ลบ</button>
+    </div>
   </div>
-</div>
-<button type="button" class="btn btn-primary btn-sm" onclick="addParticipant()">➕ เพิ่มผู้เข้าร่วม</button>
+  <button type="button" class="btn btn-primary btn-sm" onclick="addParticipant()">➕ เพิ่มผู้เข้าร่วม</button>
 
+  <!-- ✅ Purpose dropdown with custom text input when selecting "อื่น ๆ" -->
+  <div class="mb-3">
+    <label>วัตถุประสงค์</label>
+    <select class="form-select" name="purpose" id="purposeSelect" required>
+      <option value="ประชุมภายในองค์กร">ประชุมภายในองค์กร</option>
+      <option value="ประชุมระหว่างองค์กร กับ หน่วยงาน">ประชุมระหว่างองค์กร กับ หน่วยงาน</option>
+      <option value="อบรม / สัมมนา">อบรม / สัมมนา</option>
+      <option value="อื่น ๆ">อื่น ๆ</option>
+    </select>
+    <!-- Hidden by default; shown when "อื่น ๆ" is selected -->
+    <input type="text" class="form-control mt-2" name="customPurpose" id="customPurposeInput" placeholder="ระบุวัตถุประสงค์อื่น ๆ" style="display:none;">
+  </div>
 
-
-  <!-- Purpose -->
-<div class="mb-3">
-  <label>วัตถุประสงค์</label>
-  <select class="form-select" name="purpose" id="purposeSelect" required>
-    <option value="ประชุมภายในองค์กร">ประชุมภายในองค์กร</option>
-    <option value="ประชุมระหว่างองค์กร กับ หน่วยงาน">ประชุมระหว่างองค์กร กับ หน่วยงาน</option>
-    <option value="อบรม / สัมมนา">อบรม / สัมมนา</option>
-    <option value="อื่น ๆ">อื่น ๆ</option>
-  </select>
-
-  <input type="text" class="form-control mt-2" name="customPurpose" id="customPurposeInput" placeholder="ระบุวัตถุประสงค์อื่น ๆ" style="display:none;">
-</div>
-
-  <!-- Equipment -->
+  <!-- ✅ Equipment text input -->
   <div class="mb-3">
     <label>อุปกรณ์ที่ต้องการใช้</label>
     <input type="text" class="form-control" name="equipment" placeholder="เช่น โปรเจคเตอร์, ไมค์ ฯลฯ">
   </div>
 
-  <!-- Remark -->
+  <!-- ✅ Additional remark text area -->
   <div class="mb-3">
     <label>หมายเหตุเพิ่มเติม</label>
     <textarea class="form-control" name="remark" rows="3"></textarea>
   </div>
 
+  <!-- ✅ Submit button centered -->
   <div class="d-flex justify-content-center">
-  <button type="submit" class="btn btn-success px-4" style="margin-bottom: 25px;">ส่งคำขอใช้ห้องประชุม</button>
-</div>
+    <button type="submit" class="btn btn-success px-4" style="margin-bottom: 25px;">ส่งคำขอใช้ห้องประชุม</button>
+  </div>
 </form>
 </div>
 
+<!-- ✅ Include JS: handles adding/removing participants & custom purpose toggle -->
 <script src="/javascripts/insert.js"></script>
 </body>
 </html>

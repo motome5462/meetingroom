@@ -1,0 +1,244 @@
+/* Base styles for the whole page */
+html, body {
+  font-family: 'Prompt', sans-serif; /* Use Prompt font throughout */
+  margin: 0;
+  padding: 0;
+  background-color: #f7fdf2; /* Light greenish background */
+  height: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  box-sizing: border-box; /* Include padding/border in element size */
+}
+
+/* Main container for calendar content, centers content and adds horizontal padding */
+.container {
+  width: 100%;
+  padding: 0 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center children horizontally */
+}
+
+/* Sticky header at top of page (also for printing excluded with .no-print) */
+header.no-print, header {
+  width: 100%;
+  padding: 0 12px;
+  position: sticky; /* Sticks to top on scroll */
+  top: 0;
+  background-color: #fff; /* White background for contrast */
+  z-index: 999; /* Stay on top of other content */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1); /* Subtle drop shadow */
+  box-sizing: border-box;
+}
+
+/* Calendar header section containing title and month picker input */
+.calendar-header {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center;     /* Center vertically */
+  flex-wrap: wrap;         /* Wrap on small screens */
+  gap: 1rem;               /* Spacing between items */
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* Title text styling */
+.calendar-header h2 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.8rem;       /* Large readable font */
+  white-space: nowrap;     /* Prevent line breaks */
+}
+
+/* Month picker input styling */
+#monthPicker {
+  font-size: 1.1rem;
+  padding: 6px 10px;
+  cursor: pointer;         /* Pointer cursor to indicate interactivity */
+}
+
+/* Wrapper enabling horizontal scroll if calendar grid overflows */
+.calendar-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;         /* Allow horizontal scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  box-sizing: border-box;
+}
+
+/* Calendar grid using CSS Grid to create 7 equal columns (for days of week) */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 7 equal-width columns */
+  gap: 12px;               /* Space between cells */
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* Each individual day cell box */
+.day-cell {
+  height: 120px;            /* Fixed height for day boxes */
+  padding: 6px;
+  box-sizing: border-box;
+  border-radius: 10px;      /* Rounded corners */
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;   /* Stack children vertically */
+  justify-content: flex-start;
+  align-items: stretch;
+  background-color: white;
+  border: 1px solid #ccc;   /* Light border */
+  position: relative;       /* For absolutely positioned date label */
+  overflow: hidden;
+  cursor: pointer;          /* Pointer cursor to indicate clickable */
+  text-align: left;
+}
+
+/* Highlight day cell on hover or keyboard focus for accessibility */
+.day-cell:hover,
+.day-cell:focus {
+  background-color: #eaffd0; /* Light green highlight */
+  outline: none;
+  box-shadow: 0 0 8px 2px #a4d19c; /* Glow effect */
+}
+
+/* Empty cells used for padding days before first day of month */
+.day-cell.empty {
+  background-color: transparent;
+  border: none;
+  cursor: default;         /* No pointer cursor */
+}
+
+/* Weekday header cells at top (Mon, Tue, etc.) */
+.day-cell.weekday-header {
+  background-color: #b9f6ca; /* Light green background */
+  color: #2e7d32;           /* Dark green text */
+  font-weight: bold;
+  text-align: center;
+  pointer-events: none;     /* Not interactive */
+  cursor: default;
+  border: 1px solid #b9f6ca; /* Border same color as bg to blend */
+  box-shadow: none;
+  justify-content: center;  /* Center text vertically */
+  align-items: center;
+}
+
+/* Date number label positioned at top center of day cell */
+.date-label {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%); /* Center horizontally */
+  font-weight: bold;
+  font-size: 16px;
+  user-select: none;        /* Prevent text selection */
+  color: #000;
+  z-index: 2;               /* Above other content */
+  text-align: center;
+}
+
+/* Container for meeting entries inside each day cell */
+.meeting-list {
+  font-size: 13px;
+  margin-top: 28px;         /* Space below date label */
+  overflow: hidden;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;    /* Right align meeting entries */
+  gap: 4px;
+  box-sizing: border-box;
+}
+
+/* Single meeting entry style */
+.meeting-entry {
+  background-color: #d1e7dd; /* Pale green background */
+  border-radius: 4px;
+  padding: 3px 6px;
+  color: #000;
+  white-space: nowrap;       /* Prevent wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis;   /* Truncate with "..." if too long */
+  font-size: 12px;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.1); /* Slight inset shadow */
+  line-height: 1.1em;
+  text-align: right;         /* Align text to the right */
+  width: 100%;
+}
+
+/* Text styling inside meeting entries for room/time */
+.meeting-entry span {
+  font-weight: 600;
+  font-size: 11px;
+  color: #444;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Special styling for "More meetings" indicator */
+.meeting-entry.more {
+  font-style: italic;
+  color: #558b2f;            /* Darker green text */
+  background-color: #e0f2f1; /* Light teal background */
+  cursor: default;
+  user-select: none;
+}
+
+/* Highlight styling for today's date */
+.today {
+  border: 2px solid #2ecc71; /* Bright green border */
+  box-shadow: 0 0 6px 2px #2ecc71aa; /* Glow effect */
+}
+
+/* Responsive adjustments for tablets and smaller screens */
+@media (max-width: 768px) {
+  .calendar-header {
+    flex-direction: column;  /* Stack vertically */
+    gap: 0.5rem;
+  }
+
+  .calendar-header h2 {
+    font-size: 1.5rem;
+  }
+
+  #monthPicker {
+    font-size: 1rem;
+    padding: 6px 10px;
+  }
+
+  .day-cell,
+  .day-cell.weekday-header {
+    height: 100px;           /* Slightly smaller day cells */
+    font-size: 14px;
+    padding: 6px;
+  }
+}
+
+/* Responsive adjustments for mobile phones */
+@media (max-width: 480px) {
+  .calendar-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .day-cell,
+  .day-cell.weekday-header {
+    height: 80px;
+    font-size: 13px;
+    padding: 4px;
+  }
+}
+
+/* Responsive adjustments for very small phones */
+@media (max-width: 360px) {
+  .day-cell,
+  .day-cell.weekday-header {
+    height: 70px;
+    font-size: 12px;
+    padding: 4px;
+  }
+
+  .date-label {
+    font-size: 14px;
+  }
+}

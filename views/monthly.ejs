@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ปฏิทินห้องประชุมประจำเดือน</title>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/stylesheets/monthly.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet" />
+</head>
+<body style="background: rgb(216, 255, 152);">
+
+  <!-- Sticky header -->
+  <header class="mb-4">
+    <% include index %>
+  </header>
+
+  <div class="container">
+
+    <!-- Title and month selector -->
+    <div class="calendar-header">
+      <h2>ปฏิทินห้องประชุมประจำเดือน</h2>
+      <input type="month" id="monthPicker" aria-label="เลือกเดือน" />
+    </div>
+
+    <!-- Unified calendar grid -->
+    <div class="calendar-scroll-wrapper">
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- Static weekday headers -->
+        <div class="day-cell weekday-header">จันทร์</div>
+        <div class="day-cell weekday-header">อังคาร</div>
+        <div class="day-cell weekday-header">พุธ</div>
+        <div class="day-cell weekday-header">พฤหัสบดี</div>
+        <div class="day-cell weekday-header">ศุกร์</div>
+        <div class="day-cell weekday-header">เสาร์</div>
+        <div class="day-cell weekday-header">อาทิตย์</div>
+
+        <!-- Dynamic day cells will be appended by JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/javascripts/monthly.js"></script>
+</body>
+</html>
