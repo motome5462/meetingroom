@@ -86,7 +86,7 @@ body {
   width: var(--left-column-default-width); /* Default width (likely set in JS or inline style) */
   min-width: var(--left-column-min-width);
   max-width: var(--left-column-max-width);
-  background: #f0f0f0;              /* Light gray background */
+  background: #FFB6C1;              /* Light gray background */
   border-right: 1px solid black;    /* Vertical border to separate timeline */
   border-bottom: 1px solid black;   /* Bottom border */
   position: relative;
@@ -152,7 +152,7 @@ body {
   font-weight: 700;
   font-size: var(--time-label-font-size);
   text-align: center;
-  background: white;
+  background: #dfefff;
   user-select: none;             /* Disable text selection */
   min-width: var(--hour-min-width);
   width: var(--hour-width);      /* Dynamic width controlled by JS */
