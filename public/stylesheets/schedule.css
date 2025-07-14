@@ -86,6 +86,7 @@ html, body {
   position: relative;
   overflow-x: auto;   /* Allow scrolling if timeline wider than screen */
   overflow-y: hidden;
+  border-radius: 30px; /* Rounded corners for the container */
 }
 
 /* Left column listing rooms */
@@ -102,6 +103,8 @@ html, body {
   flex-direction: column;
   flex-shrink: 0;   /* Don't shrink on small screens */
   height: 100%;
+  border-top-left-radius: 24px;  /* Rounded top left corner */
+  border-bottom-left-radius: 24px; /* Rounded bottom left corner */
 }
 
 /* Top left cell (blank) */
@@ -141,6 +144,8 @@ html, body {
   background: white;
   font-size: 0;        /* Remove spacing between inline-blocks */
   scroll-behavior: smooth;
+  border-top-right-radius: 24px;  /* Rounded top right corner */
+  border-bottom-right-radius: 24px; /* Rounded bottom right corner */
 }
 
 /* Hour labels above timeline */
@@ -164,7 +169,7 @@ html, body {
   position: absolute;
   top: 10%;                   /* Slightly below top to create margin */
   height: 100%;               /* Adjusted by JS to fit row height */
-  border-radius: 25px;
+  border-radius: 32px;        /* More rounded corners */
   color: white;
   padding: 10px 16px;
   font-size: 24px;
@@ -242,6 +247,8 @@ html, body {
   border-bottom: 1px solid black; /* bottom edge */
   width: calc((var(--total-hours) + 1) * var(--hour-width));
   height: calc(var(--row-height) * 3);   /* 3 rooms */
+  border-top-right-radius: 24px;  /* Rounded top right corner */
+  border-bottom-right-radius: 24px; /* Rounded bottom right corner */
 }
 
 /* Medium screens: reduce sizes */
