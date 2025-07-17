@@ -84,8 +84,11 @@ function renderMeetings(meetings) {
 
   // Iterate over meetings and create a visual block for each
   meetings.forEach((m, i) => {
-    const roomIndex = rooms.indexOf(m.room);  // Find which row (room) this meeting belongs to
-    if (roomIndex === -1) return; // Skip if room not found
+    // ตรวจสอบสถานะ (approval) ก่อนแสดงผล
+    if (m.approval && m.approval !== 'อนุมัติ') return;
+
+    const roomIndex = rooms.indexOf(m.room);
+    if (roomIndex === -1) return;
 
     let start = timeToDecimalHours(m.datetimein);
     let end = timeToDecimalHours(m.datetimeout);

@@ -75,6 +75,8 @@ function renderMeetings(meetings) {
 
   // Iterate through each meeting to create visual blocks
   meetings.forEach((m, i) => {
+    // ตรวจสอบสถานะ (approval) ก่อนแสดงผล
+    if (m.approval && m.approval !== 'อนุมัติ') return;
     const roomIndex = rooms.indexOf(m.room);
     if (roomIndex === -1) return;  // Skip if meeting room not in rooms list
 

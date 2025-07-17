@@ -79,6 +79,7 @@ body {
   position: relative;
   overflow-x: hidden;              /* Hide horizontal overflow */
   overflow-y: hidden;              /* Hide vertical overflow */
+  border-radius: 32px; /* Rounded corners for the container */
 }
 
 /* Left column showing room names */
@@ -95,6 +96,8 @@ body {
   flex-direction: column;
   height: 100%;
   flex-shrink: 0;                  /* Prevent shrinking */
+  border-top-left-radius: 24px;  /* Rounded top left corner */
+  border-bottom-left-radius: 24px; /* Rounded bottom left corner */
 }
 
 /* Blank cell used as header spacer or empty cells */
@@ -140,6 +143,8 @@ body {
   font-size: 0;                  /* Remove whitespace gaps between inline-blocks */
   scroll-behavior: smooth;       /* Smooth scrolling (if enabled) */
   position: relative;
+  border-top-right-radius: 24px;  /* Rounded top right corner */
+  border-bottom-right-radius: 24px; /* Rounded bottom right corner */
 }
 
 /* Timeline hour labels above the timeline */
@@ -246,4 +251,6 @@ body {
   border-left: 1px solid black; /* Left border of grid */
   border-bottom: 1px solid black; /* Bottom border of grid */
   /* Height is set dynamically by JS to cover all rows */
+  border-top-right-radius: 24px;  /* Rounded top right corner */
+  border-bottom-right-radius: 24px; /* Rounded bottom right corner */
 }

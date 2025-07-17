@@ -75,15 +75,15 @@ router.post('/', async (req, res) => {
 
     // Create a new Meeting document with provided details
     const meeting = new Meeting({
-      employee: employee._id,                   // Reference to requesting employee
-      datetimein,                               // Meeting start datetime
-      datetimeout,                              // Meeting end datetime
-      room,                                    // Meeting room
-      participants: participantDocs.map(p => p._id),  // Participant references
-      purpose,                                 // Meeting purpose (customized if applicable)
-      equipment,                               // Requested equipment
-      remark,                                  // Additional remarks
-      approval: "รออนุมัติ"                     // Initial approval status: "Waiting for approval"
+      employee: employee._id,
+      datetimein,
+      datetimeout,
+      room,
+      participants: participantDocs.map(p => p._id),
+      purpose,
+      equipment,
+      remark,
+      approval: "รออนุมัติ" // ตั้งค่านี้เสมอ เพื่อรอ admin อนุมัติ
     });
 
     // Save the new meeting record in the database

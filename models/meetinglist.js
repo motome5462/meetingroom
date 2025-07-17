@@ -9,7 +9,7 @@ const meetinglistSchema = new mongoose.Schema({
   purpose: { type: String, default: "" },
   equipment: { type: String, default: "" },
   remark: { type: String, default: "" },
-  approval: { type: String, default: "" },
+  approval: { type: String, default: "รออนุมัติ" },
 });
 
 module.exports = mongoose.model('Meeting', meetinglistSchema);

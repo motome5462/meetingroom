@@ -21,7 +21,7 @@
 
   <header>
     <!-- ✅ Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
       <div class="container-fluid">
         <a class="navbar-brand" href="/">
           <img src="https://www.mot.co.th/wp-content/uploads/2024/04/%E0%B9%82%E0%B8%A5%E0%B9%82%E0%B8%81%E0%B9%89-MOTNew-%E0%B9%81%E0%B8%9A%E0%B8%9A%E0%B8%8A%E0%B8%B1%E0%B8%94.png" style="width: 100px; height: 70px;" />
@@ -40,6 +40,16 @@
             <li class="nav-item"><a class="nav-link" href="/">ตารางรายวัน</a></li>
             <li class="nav-item"><a class="nav-link" href="/insert">จองห้องประชุม</a></li>
             <li class="nav-item"><a class="nav-link" href="/schedule/display">Display</a></li>
+            <% if (typeof user !== 'undefined' && user && user.role === 'admin') { %>
+              <li class="nav-item"><a class="nav-link" href="/admin/admindashboard">Admin Dashboard</a></li>
+            <% } %>
+            <li class="nav-item">
+              <% if (typeof user !== 'undefined' && user) { %>
+                <a class="nav-link" href="/auth/logout">Logout</a>
+              <% } else { %>
+                <a class="nav-link" href="/auth/login">Login</a>
+              <% } %>
+            </li>
           </ul>
         </div>
       </div>

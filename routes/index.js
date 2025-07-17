@@ -18,4 +18,13 @@ router.get('/schedule/display', function(req, res, next) {
 router.get('/schedule/monthly', function(req, res, next) {
   res.render('monthly', { title: 'monthly' });
 });
+
+router.get('/auth/login', function(req, res, next) {
+  res.render('login', { title: 'login' });
+});
+
+
 module.exports = router;
+
+
+
