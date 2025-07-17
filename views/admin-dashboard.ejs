@@ -1,38 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
+  <meta charset="UTF-8">
   <title>Admin Dashboard</title>
-  <!-- ✅ Include Bootstrap CSS for styling -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
   <header class="mb-4">
     <% include index.ejs %>
   </header>
+
   <div class="container mt-5">
-    <div class="card shadow p-4 mx-auto" style="max-width: 700px;">
-      <h2 class="mb-3 text-center">Admin Dashboard</h2>
-      <div class="mb-3 text-center">
+    <div class="card shadow p-4">
+      <h2 class="text-center mb-3">Admin Dashboard</h2>
+
+      <div class="mb-4 text-center">
         <span class="fw-bold">Welcome, <%= user.username %>!</span>
       </div>
-      <div class="mb-4">
-        <h4 class="text-warning">รอดำเนินการอนุมัติ (<span id="pendingCount"><%= pendingRooms.length %></span>)</h4>
-        <div id="pendingRoomsContainer"></div>
-        <script type="application/json" id="pendingRoomsData">
-          <%- JSON.stringify(pendingRooms || []) %>
-        </script>
-        <script src="/javascripts/admindashboard.js"></script>
-        <script>
-          const pendingRooms = JSON.parse(document.getElementById('pendingRoomsData').textContent);
-          if (typeof renderPendingRooms === 'function') {
-            renderPendingRooms(pendingRooms);
-          }
-        </script>
+
+      <div class="row">
+        <!-- Pending Approvals -->
+        <div class="col-md-6 mb-4">
+          <h4 class="text-warning">รอดำเนินการอนุมัติ (<span id="pendingCount"><%= pendingRooms.length %></span>)</h4>
+          <div id="pendingRoomsContainer"></div>
+          <script type="application/json" id="pendingRoomsData">
+            <%- JSON.stringify(pendingRooms || []) %>
+          </script>
+        </div>
+
+        <!-- Approved Meetings -->
+        <div class="col-md-6 mb-4">
+          <h4 class="text-success">รายการที่อนุมัติแล้ว (<%= approvedRooms.length %>)</h4>
+          <% if (approvedRooms.length === 0) { %>
+            <div class="alert alert-info text-center">ยังไม่มีรายการที่อนุมัติ</div>
+          <% } else { %>
+            <% approvedRooms.forEach(room => { %>
+              <div class="card mb-3 shadow-sm border-success">
+                <div class="card-body">
+                  <h5 class="card-title text-primary"><%= room.room %></h5>
+                  <p class="card-text mb-1"><strong>ชื่อผู้จอง:</strong> <%= room.employee?.name || '-' %></p>
+                  <p class="card-text mb-1"><strong>วัตถุประสงค์:</strong> <%= room.purpose || '-' %></p>
+                  <p class="card-text mb-1">
+                    <strong>วันที่:</strong> <%= new Date(room.datetimein).toLocaleDateString() %>
+                    <strong>เวลา:</strong>
+                    <%= new Date(room.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %> -
+                    <%= new Date(room.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+                  </p>
+                </div>
+              </div>
+            <% }); %>
+          <% } %>
+        </div>
       </div>
-      <!-- <div class="text-center">
-        <a href="/auth/logout" class="btn btn-danger">Logout</a>
-      </div> -->
     </div>
   </div>
+
+  <!-- Scripts -->
+  <script src="/javascripts/admindashboard.js"></script>
+  <script>
+    const pendingRooms = JSON.parse(document.getElementById('pendingRoomsData').textContent);
+    if (typeof renderPendingRooms === 'function') {
+      renderPendingRooms(pendingRooms);
+    }
+  </script>
 </body>
 </html>

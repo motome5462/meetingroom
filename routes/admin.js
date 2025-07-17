@@ -12,4 +12,9 @@ router.post('/admindashboard/approve', authenticateJWT, requireAdmin, express.js
 // Reject a meeting (delete from DB)
 router.post('/admindashboard/reject', authenticateJWT, requireAdmin, express.json(), adminController.rejectRoom);
 
+// Show dashboard with query params (approvedDate, approvedPage)
+router.get('/admindashboard', authenticateJWT, requireAdmin, adminController.dashboard);
+
+
+
 module.exports = router;

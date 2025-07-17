@@ -4,17 +4,52 @@ exports.dashboard = async (req, res) => {
   try {
     const user = req.session.user || req.user;
 
-    // Get meetings waiting for approval
+    const roomOrder = {
+      "ห้องประชุม 1": 1,
+      "ห้องประชุม 2": 2,
+      "ห้องประชุม 3": 3
+    };
+
     const pendingRooms = await MeetingList.find({ approval: 'รออนุมัติ' })
       .populate('employee', 'name')
       .lean();
 
-    res.render('admin-dashboard', { user, pendingRooms });
+    const approvedRooms = await MeetingList.find({ approval: 'อนุมัติ' })
+      .populate('employee', 'name')
+      .lean();
+
+    const getDateString = (d) => {
+      const dt = new Date(d);
+      return dt.toISOString().slice(0, 10);
+    };
+
+    const sortMeetings = (list) =>
+      list.sort((a, b) => {
+        // 1. Date descending (newest date first)
+        const dateA = getDateString(a.datetimein);
+        const dateB = getDateString(b.datetimein);
+        if (dateA > dateB) return -1;
+        if (dateA < dateB) return 1;
+
+        // 2. Room ascending
+        const roomA = roomOrder[a.room] || 99;
+        const roomB = roomOrder[b.room] || 99;
+        if (roomA !== roomB) return roomA - roomB;
+
+        // 3. Time ascending (earliest time first)
+        return new Date(a.datetimein) - new Date(b.datetimein);
+      });
+
+    sortMeetings(pendingRooms);
+    sortMeetings(approvedRooms);
+
+    res.render('admin-dashboard', { user, pendingRooms, approvedRooms });
   } catch (error) {
     console.error('Dashboard error:', error);
     res.status(500).send('Server error');
   }
 };
+
 
 exports.approveRoom = async (req, res) => {
   try {
