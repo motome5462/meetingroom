@@ -76,8 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const isToday = dateStr === todayStr;
 
-      // Filter meetings for this date
-      const dayMeetings = meetingData.filter(m => m.date === dateStr);
+      // Filter meetings for this date AND approval is "อนุมัติ"
+      const dayMeetings = meetingData.filter(m => m.date === dateStr && m.approval === "อนุมัติ");
 
       // Create the day cell div
       const dayCell = document.createElement('div');

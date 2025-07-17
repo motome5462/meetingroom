@@ -110,18 +110,34 @@ function renderMeetings(meetings) {
       </div>
     `;
 
-    // Insert content inside nested div structure for styling
+    // Insert basic content first (only one set)
     meetingDiv.innerHTML = `
       <div class="meeting-content-wrapper">
         <div class="meeting-content">
-          <div class="meeting-set">${meetingText}</div>
           <div class="meeting-set">${meetingText}</div>
         </div>
       </div>
     `;
 
-    // Append meeting block to timeline container
+    // Append to timeline
     timeline.appendChild(meetingDiv);
+
+    // Check for overflow and add animation and second set if needed
+    requestAnimationFrame(() => {
+      const contentWrapper = meetingDiv.querySelector('.meeting-content-wrapper');
+      const content = meetingDiv.querySelector('.meeting-content');
+      const contentSet = content.querySelector('.meeting-set');
+
+      if (content.scrollWidth > contentWrapper.clientWidth) {
+        content.classList.add('marquee');
+
+        // Clone and append second set only if scrolling is needed
+        const clone = contentSet.cloneNode(true);
+        content.appendChild(clone);
+      } else {
+        content.classList.remove('marquee');
+      }
+    });
   });
 }
 

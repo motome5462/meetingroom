@@ -194,28 +194,28 @@ html, body {
   position: relative;
 }
 
-/* Content inside meeting: animated scrolling text */
+/* Content inside meeting: scrolling text (applied only when needed) */
 .meeting-content {
   display: flex;
-  animation: marquee 10s linear infinite;
   white-space: nowrap;
   will-change: transform;
 }
 
-/* Single set of meeting info for repeat scrolling */
+.meeting-content.marquee {
+  animation: marquee 10s linear infinite;
+}
+
 .meeting-set {
   display: inline-block;
   white-space: nowrap;
   padding-right: 80px; /* space between repeats */
 }
 
-/* Text lines inside meeting */
 .meeting-line {
   margin-bottom: 4px;
   line-height: 1.4;
 }
 
-/* Marquee scrolling animation */
 @keyframes marquee {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
