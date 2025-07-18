@@ -33,42 +33,51 @@
         <% }) %>
       </div>
 
-      <!-- Date input -->
-      <div class="mb-3">
-        <label>วันที่</label>
-        <input
-          type="date"
-          class="form-control"
-          name="date"
-          id="dateInput"
-          required
-          value="<%= new Date(meeting.datetimein).toISOString().slice(0, 10) %>"
-        />
-      </div>
+<%
+  const formatDate = (d) => d.toISOString().slice(0, 10);
+  const formatTime = (d) => {
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  };
+%>
 
-      <!-- Time inputs -->
-      <div class="row mb-3">
-        <div class="col">
-          <label>เวลาเริ่มต้น</label>
-          <input
-            type="time"
-            class="form-control"
-            name="timein"
-            required
-            value="<%= new Date(meeting.datetimein).toISOString().slice(11,16) %>"
-          />
-        </div>
-        <div class="col">
-          <label>เวลาสิ้นสุด</label>
-          <input
-            type="time"
-            class="form-control"
-            name="timeout"
-            required
-            value="<%= new Date(meeting.datetimeout).toISOString().slice(11,16) %>"
-          />
-        </div>
-      </div>
+<!-- Date input -->
+<div class="mb-3">
+  <label>วันที่</label>
+  <input
+    type="date"
+    class="form-control"
+    name="date"
+    id="dateInput"
+    required
+    value="<%= formatDate(meeting.datetimein) %>"
+  />
+</div>
+
+<!-- Time inputs -->
+<div class="row mb-3">
+  <div class="col">
+    <label>เวลาเริ่มต้น</label>
+    <input
+      type="time"
+      class="form-control"
+      name="timein"
+      required
+      value="<%= formatTime(meeting.datetimein) %>"
+    />
+  </div>
+  <div class="col">
+    <label>เวลาสิ้นสุด</label>
+    <input
+      type="time"
+      class="form-control"
+      name="timeout"
+      required
+      value="<%= formatTime(meeting.datetimeout) %>"
+    />
+  </div>
+</div>
 
       <!-- Participants -->
       <div id="participantFields" class="mb-3">
