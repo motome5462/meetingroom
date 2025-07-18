@@ -1,24 +1,27 @@
 const MeetingList = require('../models/meetinglist');
 const Employee = require('../models/employee');
 
+
 exports.dashboard = async (req, res) => {
   try {
     const user = req.session.user || req.user;
-    const roomOrder = {
-      "ห้องประชุม 1": 1,
-      "ห้องประชุม 2": 2,
-      "ห้องประชุม 3": 3
-    };
 
     const pendingPage = parseInt(req.query.pendingPage) || 1;
     const approvedPage = parseInt(req.query.approvedPage) || 1;
     const pageSize = 4;
 
-    const [pendingCount, approvedCount] = await Promise.all([
-      MeetingList.countDocuments({ approval: 'รออนุมัติ' }),
-      MeetingList.countDocuments({ approval: 'อนุมัติ' })
-    ]);
+    const selectedDate = req.query.date || null;
 
+    // Date filter only for approved rooms
+    let approvedDateFilter = {};
+    if (selectedDate) {
+      const start = new Date(selectedDate + 'T00:00:00');
+      const end = new Date(selectedDate + 'T23:59:59');
+      approvedDateFilter = { datetimein: { $gte: start, $lte: end } };
+    }
+
+    // Pending count and rooms WITHOUT date filter
+    const pendingCount = await MeetingList.countDocuments({ approval: 'รออนุมัติ' });
     const pendingRooms = await MeetingList.find({ approval: 'รออนุมัติ' })
       .populate('employee', 'name')
       .sort({ datetimein: -1 })
@@ -26,7 +29,9 @@ exports.dashboard = async (req, res) => {
       .limit(pageSize)
       .lean();
 
-    const approvedRooms = await MeetingList.find({ approval: 'อนุมัติ' })
+    // Approved count and rooms WITH date filter
+    const approvedCount = await MeetingList.countDocuments({ approval: 'อนุมัติ', ...approvedDateFilter });
+    const approvedRooms = await MeetingList.find({ approval: 'อนุมัติ', ...approvedDateFilter })
       .populate('employee', 'name')
       .sort({ datetimein: -1 })
       .skip((approvedPage - 1) * pageSize)
@@ -41,12 +46,14 @@ exports.dashboard = async (req, res) => {
       approvedPage,
       pendingTotalPages: Math.ceil(pendingCount / pageSize),
       approvedTotalPages: Math.ceil(approvedCount / pageSize),
+      selectedDate,
     });
   } catch (error) {
     console.error('Dashboard error:', error);
     res.status(500).send('Server error');
   }
 };
+
 
 exports.approveRoom = async (req, res) => {
   try {

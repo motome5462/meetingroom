@@ -1,4 +1,4 @@
-// Assumes div with id="pendingRoomsContainer" and span or element with id="pendingCount" exist
+// Assumes div with id="pendingRoomsContainer" and span with id="pendingCount"
 
 function renderPendingRooms(pendingRooms) {
   const container = document.getElementById('pendingRoomsContainer');
@@ -7,7 +7,7 @@ function renderPendingRooms(pendingRooms) {
 
   if (!pendingRooms || pendingRooms.length === 0) {
     if (pendingCount) pendingCount.textContent = '0';
-    container.innerHTML = '<div class="alert alert-success text-center">No pending rooms.</div>';
+    container.innerHTML = '<div class="alert alert-success text-center">ไม่มีรายการรออนุมัติ</div>';
     return;
   }
 
@@ -20,7 +20,7 @@ function renderPendingRooms(pendingRooms) {
     card.innerHTML = `
       <div class="card-body">
         <h5 class="card-title text-primary">${room.room}</h5>
-        <p class="card-text mb-1"><strong>ชื่อผู้จอง:</strong> ${(room.employee && room.employee.name) ? room.employee.name : '-'}</p>
+        <p class="card-text mb-1"><strong>ชื่อผู้จอง:</strong> ${room.employee?.name || '-'}</p>
         <p class="card-text mb-1"><strong>วัตถุประสงค์:</strong> ${room.purpose || '-'}</p>
         <p class="card-text mb-1"><strong>วันที่:</strong> ${new Date(room.datetimein).toLocaleDateString()} 
           <strong>เวลา:</strong> ${new Date(room.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(room.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -82,11 +82,6 @@ function removeRoomFromList(id) {
   }
 }
 
-// Initial call if pendingRooms is defined
-if (typeof pendingRooms !== 'undefined') {
-  renderPendingRooms(pendingRooms);
-}
-
 async function deleteMeeting(id) {
   if (!confirm('ยืนยันการลบรายการประชุมนี้?')) return;
 
@@ -98,7 +93,6 @@ async function deleteMeeting(id) {
     });
 
     if (res.ok) {
-      // Optionally remove the deleted meeting from UI or reload page
       alert('ลบรายการสำเร็จ');
       window.location.reload();
     } else {
@@ -108,4 +102,9 @@ async function deleteMeeting(id) {
   } catch (error) {
     alert('เกิดข้อผิดพลาดขณะลบ: ' + error.message);
   }
+}
+
+// Initial rendering call
+if (typeof pendingRooms !== 'undefined') {
+  renderPendingRooms(pendingRooms);
 }
