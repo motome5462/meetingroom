@@ -79,3 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize visibility on page load
   toggleCustomPurpose();
 });
+
+function toggleCustomPurpose() {
+  const select = document.getElementById('purposeSelect');
+  const customInput = document.getElementById('customPurposeInput');
+  if (select.value === 'อื่น ๆ') {
+    customInput.classList.remove('d-none');
+  } else {
+    customInput.classList.add('d-none');
+    customInput.value = '';
+  }
+}

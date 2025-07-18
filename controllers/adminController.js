@@ -1,4 +1,5 @@
 const MeetingList = require('../models/meetinglist');
+const Employee = require('../models/employee');
 
 exports.dashboard = async (req, res) => {
   try {
@@ -49,7 +50,6 @@ exports.dashboard = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
-
 
 exports.approveRoom = async (req, res) => {
   try {
@@ -116,5 +116,70 @@ exports.rejectRoom = async (req, res) => {
   } catch (error) {
     console.error('Reject room error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+exports.deleteMeeting = async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ success: false, message: 'Missing meeting ID' });
+
+    const deleted = await MeetingList.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ success: false, message: 'Meeting not found' });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete meeting error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+exports.getEditMeeting = async (req, res) => {
+  try {
+    const meeting = await MeetingList.findById(req.params.id)
+    .populate('participants', 'name employeeid')
+    .lean();
+    if (!meeting) return res.status(404).send('ไม่พบรายการประชุม');
+
+    res.render('edit-meeting', { meeting });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
+};
+
+
+exports.postEditMeeting = async (req, res) => {
+  try {
+    const { room, date, timein, timeout, purpose, customPurpose, equipment, remark, participants } = req.body;
+
+    const datetimein = new Date(`${date}T${timein}`);
+    const datetimeout = new Date(`${date}T${timeout}`);
+    const finalPurpose = (purpose === 'อื่น ๆ' && customPurpose) ? customPurpose : purpose;
+
+    let participantIds = [];
+
+    if (participants) {
+      let ids = Array.isArray(participants) ? participants : [participants];
+
+      // Find matching employees by employeeid
+      const foundEmployees = await Employee.find({ employeeid: { $in: ids.map(Number) } }, '_id');
+      participantIds = foundEmployees.map(emp => emp._id);
+    }
+
+    await MeetingList.findByIdAndUpdate(req.params.id, {
+      room,
+      datetimein,
+      datetimeout,
+      purpose: finalPurpose,
+      equipment,
+      remark,
+      participants: participantIds,
+    });
+
+    res.redirect('/admin/admindashboard');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
   }
 };

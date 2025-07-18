@@ -1,114 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-  <title>แก้ไขการจองห้องประชุม</title>
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <meta charset="UTF-8" />
+  <title>แก้ไขการประชุม</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body>
   <header class="mb-4">
-    <% include index.ejs %> <!-- shared header/navigation -->
+    <% include index.ejs %>
   </header>
 
   <div class="container mt-4">
-    <h2 class="text-center mb-4">แก้ไขการจองห้องประชุม</h2>
+    <h2 class="text-center mb-4">แก้ไขการประชุม</h2>
 
-    <form action="/admin/admindashboard/edit/<%= meeting._id %>" method="POST">
-      <!-- Employee ID input (readonly or editable if you want) -->
+    <form action="/admin/edit-meeting/<%= meeting._id %>" method="POST">
+      <!-- Room selection -->
       <div class="mb-3">
-        <label>รหัสพนักงานผู้ขอใช้ห้องประชุม (Employee ID)</label>
-        <input
-          type="number"
-          class="form-control"
-          name="employeeid"
-          value="<%= meeting.employeeId || '' %>"
-          readonly
-        >
-      </div>
-
-      <!-- Date input -->
-      <div class="mb-3">
-        <label>วันที่ต้องการใช้</label>
-        <input
-          type="date"
-          class="form-control"
-          name="date"
-          value="<%= new Date(meeting.datetimein).toISOString().slice(0, 10) %>"
-          required
-        >
-      </div>
-
-      <!-- Time range inputs -->
-      <div class="row mb-3">
-        <div class="col">
-          <label>เวลาตั้งแต่</label>
-          <input
-            type="time"
-            class="form-control"
-            name="timein"
-            value="<%= new Date(meeting.datetimein).toISOString().slice(11, 16) %>"
-            required
-          >
-        </div>
-        <div class="col">
-          <label>ถึง</label>
-          <input
-            type="time"
-            class="form-control"
-            name="timeout"
-            value="<%= new Date(meeting.datetimeout).toISOString().slice(11, 16) %>"
-            required
-          >
-        </div>
-      </div>
-
-      <!-- Room selection radio buttons -->
-      <div class="mb-3">
-        <label>เลือกห้อง</label><br/>
-        <% ['ห้องประชุม 1', 'ห้องประชุม 2', 'ห้องประชุม 3'].forEach(roomOption => { %>
+        <label>เลือกห้อง</label><br />
+        <% ['ห้องประชุม 1', 'ห้องประชุม 2', 'ห้องประชุม 3'].forEach(roomName => { %>
           <div class="form-check form-check-inline">
             <input
               class="form-check-input"
               type="radio"
               name="room"
-              value="<%= roomOption %>"
-              id="room_<%= roomOption.replace(/\s/g, '') %>"
+              value="<%= roomName %>"
+              id="room_<%= roomName.replace(/\s+/g, '') %>"
+              <%= meeting.room === roomName ? 'checked' : '' %>
               required
-              <%= meeting.room === roomOption ? 'checked' : '' %>
             >
-            <label class="form-check-label" for="room_<%= roomOption.replace(/\s/g, '') %>"><%= roomOption %></label>
+            <label class="form-check-label" for="room_<%= roomName.replace(/\s+/g, '') %>"><%= roomName %></label>
           </div>
         <% }) %>
       </div>
 
-      <!-- Participants dynamic field -->
-      <div id="participantFields">
-        <% if (meeting.participants && meeting.participants.length) { %>
-          <% meeting.participants.forEach(p => { %>
+      <!-- Date input -->
+      <div class="mb-3">
+        <label>วันที่</label>
+        <input
+          type="date"
+          class="form-control"
+          name="date"
+          id="dateInput"
+          required
+          value="<%= new Date(meeting.datetimein).toISOString().slice(0, 10) %>"
+        />
+      </div>
+
+      <!-- Time inputs -->
+      <div class="row mb-3">
+        <div class="col">
+          <label>เวลาเริ่มต้น</label>
+          <input
+            type="time"
+            class="form-control"
+            name="timein"
+            required
+            value="<%= new Date(meeting.datetimein).toISOString().slice(11,16) %>"
+          />
+        </div>
+        <div class="col">
+          <label>เวลาสิ้นสุด</label>
+          <input
+            type="time"
+            class="form-control"
+            name="timeout"
+            required
+            value="<%= new Date(meeting.datetimeout).toISOString().slice(11,16) %>"
+          />
+        </div>
+      </div>
+
+      <!-- Participants -->
+      <div id="participantFields" class="mb-3">
+        <label>ผู้เข้าร่วมประชุม</label>
+        <% if (meeting.participants && meeting.participants.length > 0) { %>
+          <% meeting.participants.forEach((p) => { %>
             <div class="input-group mb-2">
               <input
                 type="number"
                 class="form-control"
                 name="participants[]"
                 placeholder="รหัสพนักงาน"
-                value="<%= p %>"
+                value="<%= p.employeeid || '' %>"
+                required
               >
               <button type="button" class="btn btn-outline-danger" onclick="removeParticipant(this.parentNode)">ลบ</button>
             </div>
           <% }) %>
         <% } else { %>
           <div class="input-group mb-2">
-            <input type="number" class="form-control" name="participants[]" placeholder="รหัสพนักงาน">
+            <input type="number" class="form-control" name="participants[]" placeholder="รหัสพนักงาน" required />
             <button type="button" class="btn btn-outline-danger" onclick="removeParticipant(this.parentNode)">ลบ</button>
           </div>
         <% } %>
       </div>
-      <button type="button" class="btn btn-primary btn-sm" onclick="addParticipant()">➕ เพิ่มผู้เข้าร่วม</button>
+      <button type="button" class="btn btn-primary btn-sm mb-3" onclick="addParticipant()">➕ เพิ่มผู้เข้าร่วม</button>
 
-      <!-- Purpose dropdown and custom input -->
+      <!-- Purpose select + custom input -->
       <div class="mb-3">
         <label>วัตถุประสงค์</label>
-        <select class="form-select" name="purpose" id="purposeSelect" onchange="toggleCustomPurpose()" required>
+        <select class="form-select" name="purpose" id="purposeSelect" required>
           <% 
             const purposes = [
               "ประชุมภายในองค์กร",
@@ -116,20 +107,21 @@
               "อบรม / สัมมนา",
               "อื่น ๆ"
             ];
-            const selectedPurpose = purposes.includes(meeting.purpose) ? meeting.purpose : 'อื่น ๆ';
+            const currentPurpose = purposes.includes(meeting.purpose) ? meeting.purpose : 'อื่น ๆ';
           %>
           <% purposes.forEach(p => { %>
-            <option value="<%= p %>" <%= selectedPurpose === p ? 'selected' : '' %>><%= p %></option>
+            <option value="<%= p %>" <%= currentPurpose === p ? 'selected' : '' %>><%= p %></option>
           <% }) %>
         </select>
-<input
-  type="text"
-  class="form-control mt-2 <%= selectedPurpose === 'อื่น ๆ' ? '' : 'd-none' %>"
-  name="customPurpose"
-  id="customPurposeInput"
-  placeholder="ระบุวัตถุประสงค์อื่น ๆ"
-  value="<%= selectedPurpose === 'อื่น ๆ' ? meeting.purpose : '' %>"
-/>
+        <input
+          type="text"
+          class="form-control mt-2"
+          name="customPurpose"
+          id="customPurposeInput"
+          placeholder="ระบุวัตถุประสงค์อื่น ๆ"
+          style="display: none;"
+          value="<%= currentPurpose === 'อื่น ๆ' ? meeting.purpose : '' %>"
+        />
       </div>
 
       <!-- Equipment -->
@@ -141,7 +133,7 @@
           name="equipment"
           placeholder="เช่น โปรเจคเตอร์, ไมค์ ฯลฯ"
           value="<%= meeting.equipment || '' %>"
-        >
+        />
       </div>
 
       <!-- Remark -->
@@ -152,13 +144,12 @@
 
       <!-- Submit -->
       <div class="d-flex justify-content-center">
-        <button type="submit" class="btn btn-success px-4" style="margin-bottom: 25px;">บันทึกการแก้ไข</button>
-        <a href="/admin/admindashboard" class="btn btn-secondary ms-3 align-self-center">ยกเลิก</a>
+        <button type="submit" class="btn btn-success px-4">บันทึกการแก้ไข</button>
+        <a href="/admin/admindashboard" class="btn btn-secondary ms-2">ยกเลิก</a>
       </div>
     </form>
   </div>
 
-  <!-- Use the same JS as insert.js -->
-  <script src="/javascripts/insert.js"></script>
+  <script src="/javascripts/edit-meeting.js"></script>
 </body>
 </html>
