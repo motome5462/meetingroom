@@ -1,27 +1,42 @@
-// List of meeting rooms (can be modified as needed)
+// === CONFIGURATION ===
 const rooms = ['ห้องประชุม 1', 'ห้องประชุม 2', 'ห้องประชุม 3'];
-
-// Define schedule hours range (8 AM to 6 PM)
 const startHour = 8;
 const endHour = 18;
-const totalHours = endHour - startHour;  // Number of hours shown
-
-// DOM elements for timeline and rooms column
-const timeline = document.getElementById('timeline');
-const roomsCol = document.getElementById('roomsCol');
-
-// Colors array for meeting blocks, will cycle through these
+const totalHours = endHour - startHour;
 const colors = ['#3b82f6', '#f97316', '#10b981', '#ef4444', '#8b5cf6'];
 
-// Store current meetings fetched from server
-let currentMeetings = [];
+// === DOM ELEMENTS ===
+const timeline = document.getElementById('timeline');
+const roomsCol = document.getElementById('roomsCol');
+const datePicker = document.getElementById('datePicker');
+const scheduleWrapper = document.querySelector('.schedule-wrapper');
+const scheduleContainer = document.querySelector('.schedule-container');
+const leftColumn = document.querySelector('.left-column');
 
-// Remove all child elements from a given element
+// === STATE ===
+let currentMeetings = [];
+let currentDateStr = new Date().toISOString().substring(0, 10);
+if (datePicker) datePicker.value = currentDateStr;
+
+// === UTILITIES ===
 function clearChildren(el) {
   while (el.firstChild) el.removeChild(el.firstChild);
 }
 
-// Build the list of room names in the left column
+function timeToDecimalHours(timeStr) {
+  const dt = new Date(timeStr);
+  return dt.getHours() + dt.getMinutes() / 60 - startHour;
+}
+
+function getCssInt(variableName) {
+  return parseInt(getComputedStyle(document.documentElement).getPropertyValue(variableName), 10);
+}
+
+function getHourWidth() {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hour-width').trim()) || 80;
+}
+
+// === UI BUILDERS ===
 function buildRooms() {
   clearChildren(roomsCol);
   rooms.forEach(room => {
@@ -32,14 +47,9 @@ function buildRooms() {
   });
 }
 
-// Build the timeline header with hour labels
 function buildTimelineHeader() {
   clearChildren(timeline);
-
-  // Get the width of each hour block from CSS variable, default to 120px
-  const hourWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hour-width').trim()) || 120;
-
-  // Create a label for each hour in the range
+  const hourWidth = getHourWidth();
   for (let h = startHour; h <= endHour; h++) {
     const label = document.createElement('div');
     label.classList.add('time-label');
@@ -47,70 +57,51 @@ function buildTimelineHeader() {
     label.textContent = `${h}:00`;
     timeline.appendChild(label);
   }
-
-  // Set the timeline container width to fit all hour labels
   timeline.style.width = ((totalHours + 1) * hourWidth) + 'px';
 }
 
-// Convert a datetime string into decimal hours offset from startHour
-// Example: "2023-07-09T10:30" → 2.5 if startHour = 8
-function timeToDecimalHours(timeStr) {
-  const dt = new Date(timeStr);
-  return (dt.getHours() + dt.getMinutes() / 60) - startHour;
-}
-
-// Remove all existing meeting blocks from the timeline
 function clearMeetings() {
   document.querySelectorAll('.meeting-block').forEach(mb => mb.remove());
 }
 
-// Render meeting blocks on the timeline based on meetings array
 function renderMeetings(meetings) {
   clearMeetings();
+  const hourWidth = getHourWidth();
+  const headerHeight = getCssInt('--header-height');
+  const rowHeight = getCssInt('--row-height');
 
-  // Read layout sizes from CSS variables
-  const hourWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hour-width').trim()) || 120;
-  const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height'), 10);
-  const rowHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--row-height'), 10);
-
-  // Iterate through each meeting to create visual blocks
   meetings.forEach((m, i) => {
-    // ตรวจสอบสถานะ (approval) ก่อนแสดงผล
     if (m.approval && m.approval !== 'อนุมัติ') return;
     const roomIndex = rooms.indexOf(m.room);
-    if (roomIndex === -1) return;  // Skip if meeting room not in rooms list
+    if (roomIndex === -1) return;
 
     let start = timeToDecimalHours(m.datetimein);
     let end = timeToDecimalHours(m.datetimeout);
-    if (end <= start) return;       // Skip invalid meetings with zero or negative duration
+    if (end <= start) return;
 
-    // Clamp start and end times within the timeline range
     const clampedStart = Math.max(0, start);
     const clampedEnd = Math.min(totalHours, end);
     const duration = clampedEnd - clampedStart;
     if (duration <= 0) return;
 
-    // Create the meeting block div element
     const meetingDiv = document.createElement('div');
     meetingDiv.classList.add('meeting-block');
-    meetingDiv.style.backgroundColor = colors[i % colors.length];  // Cycle colors
-    meetingDiv.style.left = (clampedStart * hourWidth) + 'px';     // Position horizontally by start time
-    meetingDiv.style.width = (duration * hourWidth) + 'px';        // Width based on duration
-    meetingDiv.style.top = headerHeight + (roomIndex * rowHeight) + (0.1 * rowHeight) + 'px'; // Vertical position by room
-    meetingDiv.style.height = (rowHeight * 0.8) + 'px';            // Height slightly less than row height
+    meetingDiv.style.backgroundColor = colors[i % colors.length];
+    meetingDiv.style.left = clampedStart * hourWidth + 'px';
+    meetingDiv.style.width = duration * hourWidth + 'px';
+    meetingDiv.style.top = headerHeight + roomIndex * rowHeight + 0.1 * rowHeight + 'px';
+    meetingDiv.style.height = rowHeight * 0.8 + 'px';
 
-    // Prepare meeting text content (purpose, organizer, participant count, time range)
     const participantCount = m.participants ? m.participants.length : 0;
     const meetingText = `
       <div class="meeting-line">${m.purpose}</div>
-      <div class="meeting-line">${m.employee.name} - ผู้เข้าร่วม ${participantCount} คน</div>
+      <div class="meeting-line">${m.employee?.name || 'ไม่ระบุ'} - ผู้เข้าร่วม ${participantCount} คน</div>
       <div class="meeting-line">
         ${new Date(m.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น. -
         ${new Date(m.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น.
       </div>
     `;
 
-    // Insert basic content first (only one set)
     meetingDiv.innerHTML = `
       <div class="meeting-content-wrapper">
         <div class="meeting-content">
@@ -119,10 +110,8 @@ function renderMeetings(meetings) {
       </div>
     `;
 
-    // Append to timeline
     timeline.appendChild(meetingDiv);
 
-    // Check for overflow and add animation and second set if needed
     requestAnimationFrame(() => {
       const contentWrapper = meetingDiv.querySelector('.meeting-content-wrapper');
       const content = meetingDiv.querySelector('.meeting-content');
@@ -130,8 +119,6 @@ function renderMeetings(meetings) {
 
       if (content.scrollWidth > contentWrapper.clientWidth) {
         content.classList.add('marquee');
-
-        // Clone and append second set only if scrolling is needed
         const clone = contentSet.cloneNode(true);
         content.appendChild(clone);
       } else {
@@ -141,108 +128,102 @@ function renderMeetings(meetings) {
   });
 }
 
-// Render grid overlay with lines to guide schedule reading
 function renderGridOverlay() {
-  // Remove existing overlay if present
-  const existingOverlay = document.querySelector('.grid-overlay');
-  if (existingOverlay) existingOverlay.remove();
+  const old = document.querySelector('.grid-overlay');
+  if (old) old.remove();
 
-  // Read dimensions from CSS variables
-  const hourWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hour-width').trim()) || 120;
-  const rowHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--row-height'), 10);
-  const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height'), 10);
+  const hourWidth = getHourWidth();
+  const rowHeight = getCssInt('--row-height');
+  const headerHeight = getCssInt('--header-height');
 
-  // Create overlay div
   const overlay = document.createElement('div');
   overlay.className = 'grid-overlay';
-  overlay.style.width = `${(totalHours + 1) * hourWidth}px`;  // Full timeline width
-  overlay.style.height = `${rooms.length * rowHeight}px`;    // Full height covering all rooms
-  overlay.style.top = `${headerHeight}px`;                    // Position below timeline header
+  overlay.style.width = (totalHours + 1) * hourWidth + 'px';
+  overlay.style.height = rooms.length * rowHeight + 'px';
+  overlay.style.top = headerHeight + 'px';
 
-  // Append overlay to timeline
   timeline.appendChild(overlay);
 }
 
-// Dynamically update hour block width based on container size and constraints
 function updateHourWidth() {
-  const scheduleContainer = document.querySelector('.schedule-container');
-  const leftColumn = document.querySelector('.left-column');
   const totalContainerWidth = scheduleContainer.clientWidth;
+  const leftColumnWidth = leftColumn.clientWidth || 140;
+  let hourWidthPx = (totalContainerWidth - leftColumnWidth) / (totalHours + 1);
+  const minHourWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hour-min-width')) || 60;
 
-  // Compute left column width as 20% of container width but constrained between 120-180px
-  let leftColumnWidth = Math.max(120, Math.min(180, totalContainerWidth * 0.2));
-  leftColumn.style.width = `${leftColumnWidth}px`;
-
-  // Calculate available width for timeline
-  const timelineWidth = totalContainerWidth - leftColumnWidth;
-  let hourWidthPx = timelineWidth / (totalHours + 1);
-
-  // Minimum hour width from CSS or fallback 80px
-  const minHourWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hour-min-width')) || 80;
   hourWidthPx = Math.max(hourWidthPx, minHourWidth);
+  hourWidthPx = Math.floor(hourWidthPx);
 
-  // Round to integer pixels to avoid subpixel gaps
-  hourWidthPx = Math.round(hourWidthPx);
-
-  // Set CSS variable to update layout styles
   document.documentElement.style.setProperty('--hour-width', `${hourWidthPx}px`);
-
-  // Adjust timeline container width accordingly
-  if (timeline) {
-    timeline.style.width = `${(totalHours + 1) * hourWidthPx}px`;
-  }
+  timeline.style.width = (totalHours + 1) * hourWidthPx + 'px';
 }
 
-// Initialize Socket.IO client connection
-const socket = io();
+function updateScheduleWrapperHeight() {
+  const rowHeight = getCssInt('--row-height');
+  const headerHeight = getCssInt('--header-height');
+  scheduleWrapper.style.height = `${headerHeight + rowHeight * rooms.length}px`;
+}
 
-// Date picker element for selecting schedule date
-const datePicker = document.getElementById('datePicker');
-
-// Selected date from server or default to today
-const selectedDate = selectedDateFromServer || new Date().toISOString().substring(0, 10);
-if (datePicker) datePicker.value = selectedDate;
-
-// Refresh the entire schedule UI (layout + meetings + grid)
+// === SCHEDULE REFRESH ===
 function refreshSchedule() {
   updateHourWidth();
   buildTimelineHeader();
   buildRooms();
   renderMeetings(currentMeetings);
   renderGridOverlay();
+  updateScheduleWrapperHeight();
 }
 
-// On socket connect, initialize schedule
+// === SOCKET.IO SETUP ===
+const socket = io();
+
 socket.on('connect', () => {
+  console.log('[Socket] Connected. Initializing...');
   initialize();
+  setDailyDateChecker();
 });
 
-// Listen for schedule updates from server and refresh UI
-socket.on('scheduleUpdate', meetings => {
+socket.on('scheduleUpdate', (meetings) => {
+  console.log('[Socket] Schedule update received for date:', currentDateStr);
+  // We trust meetings correspond to currentDateStr
   currentMeetings = meetings;
   refreshSchedule();
 });
 
-// When user changes date, request schedule for that date
-if (datePicker) {
-  datePicker.addEventListener('change', e => {
-    requestSchedule(e.target.value);
-  });
-}
-
-// Initial load or socket reconnect logic
-function initialize() {
-  currentMeetings = [];
-  refreshSchedule();
-  requestSchedule(datePicker ? datePicker.value : new Date().toISOString().substring(0, 10));
-}
-
-// Emit request to server for schedule data of given date
+// === REQUESTING SCHEDULE ===
 function requestSchedule(dateStr) {
+  console.log('[Emit] Requesting schedule for date:', dateStr);
   socket.emit('requestSchedule', { date: dateStr });
 }
 
-// Refresh schedule layout responsively on window resize
+// === EVENT LISTENERS ===
+if (datePicker) {
+  datePicker.addEventListener('change', e => {
+    currentDateStr = e.target.value;
+    requestSchedule(currentDateStr);
+  });
+}
+
 window.addEventListener('resize', () => {
   refreshSchedule();
 });
+
+// === AUTO NEW-DAY CHECKER ===
+function setDailyDateChecker() {
+  setInterval(() => {
+    const todayStr = new Date().toISOString().substring(0, 10);
+
+    // Only refresh if user is viewing today
+    if (currentDateStr === todayStr) {
+      requestSchedule(todayStr);
+    }
+
+  }, 60 * 1000); // every minute
+}
+
+// === INITIALIZE ON LOAD ===
+function initialize() {
+  currentMeetings = [];
+  refreshSchedule();
+  requestSchedule(currentDateStr);
+}

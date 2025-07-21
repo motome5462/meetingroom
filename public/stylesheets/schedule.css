@@ -5,7 +5,7 @@
   --left-column-max-width: 180px;        /* Max width for room column */
   --left-font-min-size: 12px;            /* Minimum font size for left text */
   --total-hours: 10;                     /* Number of hours shown on timeline */
-  --cell-height: 200px;                  /* Height for each header & row */
+  --cell-height: 180px;                  /* Height for each header & row */
   --header-height: var(--cell-height);   /* Height of timeline header */
   --row-height: var(--cell-height);      /* Height of each room row */
   --room-font-size: 18px;                /* Font size for room labels */
