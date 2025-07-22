@@ -17,19 +17,50 @@ router.get('/api/employee/:id', async (req, res) => {
   res.json({ name: emp.name, department: emp.department });
 });
 
-// 🔍 Search participants by name or ID
 router.get('/api/employees/search', async (req, res) => {
   const q = req.query.q || '';
-  const query = isNaN(q)
-    ? { name: new RegExp(q, 'i') }
-    : { $or: [{ name: new RegExp(q, 'i') }, { employeeid: parseInt(q) }] };
 
-  const employees = await Employee.find(query).limit(10);
-  res.json(employees.map(e => ({
-    id: e.employeeid,
-    name: e.name,
-    dept: e.department
-  })));
+  let pipeline = [];
+
+  if (!isNaN(q) && q.length >= 4) {
+    // 🔍 If 4+ digits and numeric: search by name or partial employeeid
+    pipeline = [
+      {
+        $addFields: {
+          employeeidStr: { $toString: '$employeeid' }
+        }
+      },
+      {
+        $match: {
+          $or: [
+            { name: { $regex: q, $options: 'i' } },
+            { employeeidStr: { $regex: q } }
+          ]
+        }
+      },
+      { $limit: 10 }
+    ];
+  } else {
+    // 🔍 Otherwise, search by name only
+    pipeline = [
+      {
+        $match: {
+          name: { $regex: q, $options: 'i' }
+        }
+      },
+      { $limit: 10 }
+    ];
+  }
+
+  const employees = await Employee.aggregate(pipeline);
+
+  res.json(
+    employees.map(e => ({
+      id: e.employeeid,
+      name: e.name,
+      dept: e.department
+    }))
+  );
 });
 
 // POST: Handle meeting reservation submission

@@ -31,7 +31,7 @@ window.addEventListener('DOMContentLoaded', () => {
           data.forEach(e => {
             const li = document.createElement('li');
             li.className = 'list-group-item list-group-item-action';
-            li.textContent = `${e.id} - ${e.name} (${e.dept})`;
+            li.textContent = `${e.id} - ${e.name}`;
             li.onclick = () => {
               input.value = e.id;
               removeAutocompleteList(input);
