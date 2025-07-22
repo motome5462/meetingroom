@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const app = require('./app');  // Your Express app
+const app = require('./app'); // Your Express app
 const http = require('http').createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(http);
@@ -32,7 +32,13 @@ mongoose.connect(MONGODB_URI, {
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
 
-    // Listen for client schedule requests by date
+    // 📌 New Day Detection (from any client)
+    socket.on('newDay', (dateStr) => {
+      console.log('[Socket] New day detected by client:', dateStr);
+      io.emit('reloadPage'); // 🔁 Broadcast page reload to all clients
+    });
+
+    // 📌 Client requests daily schedule by date
     socket.on('requestSchedule', async ({ date } = {}) => {
       const Meeting = require('./models/meetinglist');
       const selectedDate = date || new Date().toISOString().slice(0, 10);
@@ -48,11 +54,11 @@ mongoose.connect(MONGODB_URI, {
         .populate('participants', 'name')
         .lean();
 
-        // Emit only to the requesting client
+        // ✅ Emit to just the requesting client
         socket.emit('scheduleUpdate', meetings);
       } catch (err) {
         console.error('Error fetching meetings:', err);
-        socket.emit('scheduleUpdate', []); // empty array on error
+        socket.emit('scheduleUpdate', []); // fail-safe
       }
     });
 
@@ -62,11 +68,11 @@ mongoose.connect(MONGODB_URI, {
   });
 
   /**
-   * Broadcast all meetings in a given month to all connected clients.
-   * Useful for monthly calendar updates.
-   *
-   * @param {number|string} year - Full year, e.g. 2025
-   * @param {number|string} month - 1-based month number (1-12)
+   * 🔁 Broadcast all meetings in a given month to all connected clients.
+   * Useful for monthly calendar views.
+   * 
+   * @param {number|string} year - e.g. 2025
+   * @param {number|string} month - 1-based (1–12)
    */
   const broadcastMonthlyUpdate = async (year, month) => {
     const Meeting = require('./models/meetinglist');
@@ -80,7 +86,6 @@ mongoose.connect(MONGODB_URI, {
         datetimein: { $gte: start, $lt: end }
       }).lean();
 
-      // Format meetings for minimal payload
       const formatted = meetings.map(m => ({
         date: m.datetimein.toISOString().split('T')[0],
         time: m.datetimein.toTimeString().slice(0, 5) + '-' + m.datetimeout.toTimeString().slice(0, 5),
@@ -89,17 +94,17 @@ mongoose.connect(MONGODB_URI, {
       }));
 
       io.emit('meetingsUpdated', { year, month, meetings: formatted });
-      console.log(`Broadcasted monthly update for ${year}-${monthStr}, meetings count: ${meetings.length}`);
+      console.log(`📡 Broadcasted monthly update for ${year}-${monthStr} (${meetings.length} items)`);
     } catch (err) {
       console.error('Error broadcasting monthly meetings:', err);
     }
   };
 
-  // Make this available in your Express app for other modules/controllers
+  // 📌 Make available to controllers
   app.set('broadcastMonthlyUpdate', broadcastMonthlyUpdate);
 
   http.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
   });
 })
 .catch(err => {

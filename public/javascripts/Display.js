@@ -210,19 +210,28 @@ window.addEventListener('resize', () => {
 
 // === AUTO NEW-DAY CHECKER ===
 function setDailyDateChecker() {
-  setInterval(() => {
-    const todayStr = new Date().toISOString().substring(0, 10);
+  let lastCheckedDate = currentDateStr;
 
-    // Only refresh if user is viewing today
+  setInterval(() => {
+    const todayStr = new Date().toLocaleDateString('sv-SE'); // 'YYYY-MM-DD'
+
+    if (todayStr !== lastCheckedDate) {
+      lastCheckedDate = todayStr;
+      currentDateStr = todayStr;
+
+      if (datePicker) {
+        datePicker.value = todayStr;
+      }
+
+      console.log('[Auto] New day detected:', todayStr);
+      socket.emit('newDay', todayStr); // 👈 emit to server
+    }
+
+    // Still viewing today? Keep refreshing
     if (currentDateStr === todayStr) {
       requestSchedule(todayStr);
     }
-
-    // Optionally sync date picker if it's set to currentDateStr (= today)
-    if (datePicker && datePicker.value === currentDateStr) {
-      datePicker.value = todayStr;
-    }
-  }, 60 * 1000); // every minute
+  }, 60 * 1000); // Every 1 minute
 }
 
 // === INITIALIZE ON LOAD ===
