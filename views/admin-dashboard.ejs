@@ -64,6 +64,13 @@
                     <div class="card-body">
                       <h5 class="card-title text-primary"><%= room.room %></h5>
                       <p class="card-text mb-1"><strong>ชื่อผู้จอง:</strong> <%= room.employee?.name || '-' %></p>
+                      <p class="card-text mb-1">
+                        <strong>ผู้เข้าร่วม:</strong>
+                        <%= room.participants?.length || 0 %> คน
+                        <%= room.participants && room.participants.length > 0
+                          ? '(' + room.participants.map(p => p.name.split(' ')[0]).join(', ') + ')'
+                        : '' %>
+                      </p>
                       <p class="card-text mb-1"><strong>วัตถุประสงค์:</strong> <%= room.purpose || '-' %></p>
                       <p class="card-text mb-1">
                         <strong>วันที่:</strong> <%= new Date(room.datetimein).toLocaleDateString() %>

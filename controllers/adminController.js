@@ -68,13 +68,15 @@ exports.dashboard = async (req, res) => {
     const [pendingRooms, approvedRooms] = await Promise.all([
       MeetingList.find({ approval: 'รออนุมัติ' })
         .populate('employee', 'name')
+        .populate('participants', 'name')
         .sort({ datetimein: -1 })
         .skip((pendingPage - 1) * pageSize)
         .limit(pageSize)
         .lean(),
 
       MeetingList.find({ approval: 'อนุมัติ', ...approvedDateFilter })
-        .populate('employee', 'name')
+      .populate('employee', 'name')
+        .populate('participants', 'name')
         .sort({ datetimein: -1 })
         .skip((approvedPage - 1) * pageSize)
         .limit(pageSize)
