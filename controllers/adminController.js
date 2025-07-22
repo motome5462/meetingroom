@@ -165,9 +165,10 @@ exports.deleteMeeting = async (req, res) => {
 // 📝 Get Edit Form
 exports.getEditMeeting = async (req, res) => {
   try {
-    const meeting = await MeetingList.findById(req.params.id)
-      .populate('participants', 'name employeeid')
-      .lean();
+const meeting = await MeetingList.findById(req.params.id)
+  .populate('employee', 'name employeeid') // 🆕 requester
+  .populate('participants', 'name employeeid')
+  .lean();
 
     if (!meeting) return res.status(404).send('ไม่พบรายการประชุม');
 
