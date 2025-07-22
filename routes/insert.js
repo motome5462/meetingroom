@@ -9,6 +9,29 @@ router.get('/', (req, res) => {
   res.render('insert', { success: false });
 });
 
+// 🔍 Lookup employee name for the main requestor
+router.get('/api/employee/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+  const emp = await Employee.findOne({ employeeid: id });
+  if (!emp) return res.status(404).json({});
+  res.json({ name: emp.name, department: emp.department });
+});
+
+// 🔍 Search participants by name or ID
+router.get('/api/employees/search', async (req, res) => {
+  const q = req.query.q || '';
+  const query = isNaN(q)
+    ? { name: new RegExp(q, 'i') }
+    : { $or: [{ name: new RegExp(q, 'i') }, { employeeid: parseInt(q) }] };
+
+  const employees = await Employee.find(query).limit(10);
+  res.json(employees.map(e => ({
+    id: e.employeeid,
+    name: e.name,
+    dept: e.department
+  })));
+});
+
 // POST: Handle meeting reservation submission
 router.post('/', async (req, res) => {
   try {
@@ -45,7 +68,7 @@ router.post('/', async (req, res) => {
     const employee = await Employee.findOne({ employeeid: parseInt(employeeid) });
     if (!employee) {
       // Redirect back with error if employee not found
-      return res.redirect('/insert?error=employee');
+        return res.status(400).json({ error: '❌ รหัสพนักงานไม่ถูกต้อง' });
     }
 
     // Normalize participants input: ensure it's an array of valid employee IDs (integers)
@@ -70,7 +93,7 @@ router.post('/', async (req, res) => {
 
     if (conflict) {
       // If conflict found, reject the request with an error message
-      return res.status(400).send('❌ ห้องนี้ถูกจองไว้แล้วในช่วงเวลานี้');  // "Room is already booked at this time"
+      return res.status(400).json({ error: '❌ ห้องนี้ถูกจองไว้แล้วในช่วงเวลานี้' });  // "Room is already booked at this time"
     }
 
     // Create a new Meeting document with provided details

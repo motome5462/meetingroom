@@ -24,7 +24,8 @@
   <!-- ✅ Employee ID input -->
   <div class="mb-3">
     <label>รหัสพนักงานผู้ขอใช้ห้องประชุม (Employee ID)</label>
-    <input type="number" class="form-control" name="employeeid" required>
+    <input type="number" class="form-control" name="employeeid" id="employeeidInput" required>
+    <div id="employeeName" class="text-muted mt-1"></div>
   </div>
 
   <!-- ✅ Date input -->
@@ -64,7 +65,7 @@
 
   <!-- ✅ Participants dynamic field: can add/remove -->
   <div id="participantFields">
-    <div class="input-group mb-2">
+    <div class="input-group mb-2 position-relative">
       <input type="number" class="form-control" name="participants[]" placeholder="รหัสพนักงาน">
       <button type="button" class="btn btn-outline-danger" onclick="removeParticipant(this.parentNode)">ลบ</button>
     </div>
@@ -74,14 +75,14 @@
   <!-- ✅ Purpose dropdown with custom text input when selecting "อื่น ๆ" -->
   <div class="mb-3">
     <label>วัตถุประสงค์</label>
-    <select class="form-select" name="purpose" id="purposeSelect" required>
+    <select class="form-select" name="purpose" id="purposeSelect" required onchange="toggleCustomPurpose()">
       <option value="ประชุมภายในองค์กร">ประชุมภายในองค์กร</option>
       <option value="ประชุมระหว่างองค์กร กับ หน่วยงาน">ประชุมระหว่างองค์กร กับ หน่วยงาน</option>
       <option value="อบรม / สัมมนา">อบรม / สัมมนา</option>
       <option value="อื่น ๆ">อื่น ๆ</option>
     </select>
     <!-- Hidden by default; shown when "อื่น ๆ" is selected -->
-    <input type="text" class="form-control mt-2" name="customPurpose" id="customPurposeInput" placeholder="ระบุวัตถุประสงค์อื่น ๆ" style="display:none;">
+    <input type="text" class="form-control mt-2 d-none" name="customPurpose" id="customPurposeInput" placeholder="ระบุวัตถุประสงค์อื่น ๆ">
   </div>
 
   <!-- ✅ Equipment text input -->

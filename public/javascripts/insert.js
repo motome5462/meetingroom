@@ -1,92 +1,152 @@
-// Add a new participant input field with remove button
+// === Add/Remove Participants with Autocomplete ===
 function addParticipant() {
   const container = document.getElementById('participantFields');
 
-  // Create a wrapper div for input and button
   const wrapper = document.createElement('div');
-  wrapper.className = 'input-group mb-2';
+  wrapper.className = 'input-group mb-2 position-relative';
 
-  // Create input field for participant employee ID (number)
   const input = document.createElement('input');
-  input.type = 'number';
-  input.name = 'participants[]';          // Name as array to submit multiple participants
+  input.type = 'text';
+  input.name = 'participants[]';
   input.className = 'form-control';
-  input.placeholder = 'รหัสพนักงาน';    // Placeholder text: "Employee ID"
+  input.placeholder = 'รหัสพนักงานหรือชื่อ';
 
-  // Create remove button with styling
   const btn = document.createElement('button');
-  btn.type = 'button';                    // Button that does not submit form
+  btn.type = 'button';
   btn.className = 'btn btn-outline-danger';
-  btn.innerHTML = 'ลบ';                   // Button text: "Delete"
-  btn.onclick = () => removeParticipant(wrapper);  // On click, remove this participant field
+  btn.innerHTML = 'ลบ';
+  btn.onclick = () => removeParticipant(wrapper);
 
-  // Append input and button to wrapper, then add to container
   wrapper.appendChild(input);
   wrapper.appendChild(btn);
   container.appendChild(wrapper);
 
-  // Update remove button states after adding (disable if only one field)
+  enableParticipantSearch(input);
   updateRemoveButtons();
 }
 
-// Remove participant input field if more than one exists
 function removeParticipant(wrapper) {
   const container = document.getElementById('participantFields');
-
-  // Only remove if there is more than one participant input field
   if (container.children.length > 1) {
     wrapper.remove();
-    // Update remove buttons state after removal
     updateRemoveButtons();
   }
 }
 
-// Enable or disable remove buttons based on how many participant fields exist
 function updateRemoveButtons() {
-  const container = document.getElementById('participantFields');
-  const wrappers = container.querySelectorAll('.input-group');
-
-  wrappers.forEach((wrapper) => {
-    const btn = wrapper.querySelector('button');
-    if (btn) {
-      // Disable remove button if only one participant field left
-      btn.disabled = wrappers.length <= 1;
-    }
+  const wrappers = document.querySelectorAll('#participantFields .input-group');
+  wrappers.forEach(w => {
+    const btn = w.querySelector('button');
+    btn.disabled = wrappers.length <= 1;
   });
 }
 
-
-// Wait until the DOM is fully loaded before setting up event listeners
-document.addEventListener('DOMContentLoaded', () => {
-  const purposeSelect = document.getElementById('purposeSelect');       // Select element for meeting purpose
-  const customInput = document.getElementById('customPurposeInput');    // Custom purpose input field (initially hidden)
-
-  // Show or hide custom purpose input based on selected option
-  function toggleCustomPurpose() {
-    if (purposeSelect.value === 'อื่น ๆ') {       // If user selects "Other"
-      customInput.style.display = 'block';         // Show custom input
-      customInput.required = true;                  // Make it required
-    } else {
-      customInput.style.display = 'none';          // Hide custom input
-      customInput.required = false;                 // Not required
-      customInput.value = '';                        // Clear any existing input
-    }
-  }
-
-  // Listen for changes on purpose dropdown to toggle custom input visibility
-  purposeSelect.addEventListener('change', toggleCustomPurpose);
-
-  // Initialize visibility on page load
-  toggleCustomPurpose();
-});
-
+// === Purpose Toggle ===
 function toggleCustomPurpose() {
   const select = document.getElementById('purposeSelect');
   const customInput = document.getElementById('customPurposeInput');
   if (select.value === 'อื่น ๆ') {
     customInput.classList.remove('d-none');
+    customInput.required = true;
   } else {
     customInput.classList.add('d-none');
+    customInput.required = false;
     customInput.value = '';
   }
 }
+
+// === Employee ID Name Display ===
+function setupEmployeeNameLookup() {
+  const input = document.querySelector('input[name="employeeid"]');
+  const display = document.createElement('div');
+  display.className = 'text-muted mt-1';
+  input.parentNode.appendChild(display);
+
+  input.addEventListener('input', async () => {
+    const id = input.value.trim();
+    if (!id) return display.textContent = '';
+
+    try {
+      const res = await fetch(`/insert/api/employee/${id}`);
+      const data = await res.json();
+      display.textContent = data.name ? `👤 ${data.name} (${data.department})` : '❌ ไม่พบข้อมูลพนักงาน';
+    } catch {
+      display.textContent = '❌ ไม่พบข้อมูลพนักงาน';
+    }
+  });
+}
+
+// === Participant Autocomplete ===
+function enableParticipantSearch(input) {
+  let timeout;
+  input.addEventListener('input', () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(async () => {
+      const q = input.value.trim();
+      if (!q) return;
+
+      const res = await fetch(`/insert/api/employees/search?q=${q}`);
+      const data = await res.json();
+
+      const list = document.createElement('ul');
+      list.className = 'list-group position-absolute autocomplete';
+      list.style.zIndex = 9999;
+      list.style.top = `${input.offsetTop + input.offsetHeight}px`;
+      list.style.left = `${input.offsetLeft}px`;
+      list.style.width = `${input.offsetWidth}px`;
+      list.style.maxHeight = '200px';
+      list.style.overflowY = 'auto';
+
+      data.forEach(e => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item list-group-item-action';
+        li.textContent = `${e.id} - ${e.name} (${e.dept})`;
+        li.onclick = () => {
+          input.value = e.id;
+          list.remove();
+        };
+        list.appendChild(li);
+      });
+
+      input.parentNode.querySelectorAll('.autocomplete').forEach(el => el.remove());
+      input.parentNode.appendChild(list);
+    }, 300);
+  });
+}
+
+// === AJAX Form Submission ===
+function setupFormSubmission() {
+  const form = document.querySelector('form');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    data.participants = formData.getAll('participants[]');
+
+    try {
+      const res = await fetch('/insert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || 'เกิดข้อผิดพลาด');
+      } else {
+        window.location.href = '/insert?success=1';
+      }
+    } catch {
+      alert('⚠️ การส่งข้อมูลล้มเหลว');
+    }
+  });
+}
+
+// === INIT ===
+document.addEventListener('DOMContentLoaded', () => {
+  toggleCustomPurpose();
+  setupEmployeeNameLookup();
+  setupFormSubmission();
+  document.getElementById('purposeSelect').addEventListener('change', toggleCustomPurpose);
+  document.querySelectorAll('input[name="participants[]"]').forEach(enableParticipantSearch);
+});
