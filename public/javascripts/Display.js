@@ -15,7 +15,7 @@ const leftColumn = document.querySelector('.left-column');
 
 // === STATE ===
 let currentMeetings = [];
-let currentDateStr = new Date().toISOString().substring(0, 10);
+let currentDateStr = new Date().toISOString().substring(0, 10);  // utc +0
 if (datePicker) datePicker.value = currentDateStr;
 
 // === UTILITIES ===
@@ -213,8 +213,7 @@ function setDailyDateChecker() {
   let lastCheckedDate = currentDateStr;
 
   setInterval(() => {
-    const todayStr = new Date().toLocaleDateString('sv-SE'); // 'YYYY-MM-DD'
-
+    const todayStr = new Date().toLocaleDateString('sv-SE'); // 'YYYY-MM-DD' check local time  but ref with UTC +0
     if (todayStr !== lastCheckedDate) {
       lastCheckedDate = todayStr;
       currentDateStr = todayStr;
