@@ -87,9 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
       dayCell.setAttribute('aria-label', `วันที่ ${d} มี ${dayMeetings.length} การประชุม`);
 
       // Click or keyboard "Enter" / "Space" navigates to schedule page with that date
-      dayCell.addEventListener('click', () => location.href = `/?date=${dateStr}`);
+      dayCell.addEventListener('click', () => location.href = `/schedule?date=${dateStr}`);
       dayCell.addEventListener('keypress', e => {
-        if (e.key === 'Enter' || e.key === ' ') location.href = `/?date=${dateStr}`;
+        if (e.key === 'Enter' || e.key === ' ') location.href = `/schedule?date=${dateStr}`;
       });
 
       // Date label (number) displayed on top center of cell

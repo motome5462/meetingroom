@@ -5,7 +5,11 @@ const Meeting = require('../models/meetinglist'); // Mongoose model
 // GET / — Daily schedule view
 router.get('/', (req, res) => {
   const selectedDate = req.query.date || new Date().toISOString().slice(0, 10);
-  res.render('schedule', { title: 'Schedule', selectedDate });
+  if (!req.query.date) {
+    res.redirect(`/schedule?date=${selectedDate}`);
+  } else {
+    res.render('schedule', { selectedDate: selectedDate });
+  }
 });
 
 // GET /monthly — Monthly calendar view

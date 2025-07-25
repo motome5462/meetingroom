@@ -15,7 +15,7 @@ const leftColumn = document.querySelector('.left-column');
 
 // === STATE ===
 let currentMeetings = [];
-let currentDateStr = new Date().toISOString().substring(0, 10);
+let currentDateStr = new Date().toISOString().substring(0, 10);  // utc +0
 if (datePicker) datePicker.value = currentDateStr;
 
 // === UTILITIES ===
@@ -180,7 +180,6 @@ const socket = io();
 socket.on('connect', () => {
   console.log('[Socket] Connected. Initializing...');
   initialize();
-  setDailyDateChecker();
 });
 
 socket.on('scheduleUpdate', (meetings) => {
@@ -208,21 +207,13 @@ window.addEventListener('resize', () => {
   refreshSchedule();
 });
 
-// === AUTO NEW-DAY CHECKER ===
-function setDailyDateChecker() {
-  setInterval(() => {
-    const todayStr = new Date().toISOString().substring(0, 10);
-
-    // Only refresh if user is viewing today
-    if (currentDateStr === todayStr) {
-      requestSchedule(todayStr);
-    }
-
-  }, 60 * 1000); // every minute
-}
-
 // === INITIALIZE ON LOAD ===
 function initialize() {
+  // If selectedDateFromServer is available (from server), use it as initial date
+  if (typeof selectedDateFromServer !== 'undefined' && selectedDateFromServer) {
+    currentDateStr = selectedDateFromServer;
+    if (datePicker) datePicker.value = currentDateStr;
+  }
   currentMeetings = [];
   refreshSchedule();
   requestSchedule(currentDateStr);
