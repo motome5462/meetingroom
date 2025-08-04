@@ -45,6 +45,60 @@ async function broadcastMonthlyUpdate(io) {
 
 
 // 🧩 Admin Dashboard
+// exports.dashboard = async (req, res) => {
+//   try {
+//     const user = req.session.user || req.user;
+//     const pendingPage = parseInt(req.query.pendingPage) || 1;
+//     const approvedPage = parseInt(req.query.approvedPage) || 1;
+//     const pageSize = 4;
+//     const selectedDate = req.query.date || null;
+
+//     let approvedDateFilter = {};
+//     if (selectedDate) {
+//       const start = new Date(`${selectedDate}T00:00:00`);
+//       const end = new Date(`${selectedDate}T23:59:59`);
+//       approvedDateFilter.datetimein = { $gte: start, $lte: end };
+//     }
+
+//     const [pendingCount, approvedCount] = await Promise.all([
+//       MeetingList.countDocuments({ approval: 'รออนุมัติ' }),
+//       MeetingList.countDocuments({ approval: 'อนุมัติ', ...approvedDateFilter }),
+//     ]);
+
+//     const [pendingRooms, approvedRooms] = await Promise.all([
+//       MeetingList.find({ approval: 'รออนุมัติ' })
+//         .populate('employee', 'name')
+//         .populate('participants', 'name')
+//         .sort({ datetimein: -1 })
+//         .skip((pendingPage - 1) * pageSize)
+//         .limit(pageSize)
+//         .lean(),
+
+//       MeetingList.find({ approval: 'อนุมัติ', ...approvedDateFilter })
+//       .populate('employee', 'name')
+//         .populate('participants', 'name')
+//         .sort({ datetimein: -1 })
+//         .skip((approvedPage - 1) * pageSize)
+//         .limit(pageSize)
+//         .lean()
+//     ]);
+
+//     res.render('admin-dashboard', {
+//       user,
+//       pendingRooms,
+//       approvedRooms,
+//       pendingPage,
+//       approvedPage,
+//       pendingTotalPages: Math.ceil(pendingCount / pageSize),
+//       approvedTotalPages: Math.ceil(approvedCount / pageSize),
+//       selectedDate
+//     });
+//   } catch (err) {
+//     console.error('Dashboard error:', err);
+//     res.status(500).send('Server error');
+//   }
+// };
+
 exports.dashboard = async (req, res) => {
   try {
     const user = req.session.user || req.user;
@@ -65,23 +119,40 @@ exports.dashboard = async (req, res) => {
       MeetingList.countDocuments({ approval: 'อนุมัติ', ...approvedDateFilter }),
     ]);
 
-    const [pendingRooms, approvedRooms] = await Promise.all([
+    const [pendingRoomsUnsorted, approvedRoomsUnsorted] = await Promise.all([
       MeetingList.find({ approval: 'รออนุมัติ' })
         .populate('employee', 'name')
         .populate('participants', 'name')
-        .sort({ datetimein: -1 })
-        .skip((pendingPage - 1) * pageSize)
-        .limit(pageSize)
         .lean(),
 
       MeetingList.find({ approval: 'อนุมัติ', ...approvedDateFilter })
-      .populate('employee', 'name')
+        .populate('employee', 'name')
         .populate('participants', 'name')
-        .sort({ datetimein: -1 })
-        .skip((approvedPage - 1) * pageSize)
-        .limit(pageSize)
         .lean()
     ]);
+
+    // 🧠 Sorting logic: date DESC > room custom order > time ASC
+    const roomOrder = ['ห้องประชุม 1', 'ห้องประชุม 2', 'ห้องประชุม 3'];
+    const sortMeetings = (meetings) => {
+      return meetings.sort((a, b) => {
+        const dateA = a.datetimein.toISOString().split('T')[0];
+        const dateB = b.datetimein.toISOString().split('T')[0];
+        const dateCompare = dateB.localeCompare(dateA); // DESC by date
+        if (dateCompare !== 0) return dateCompare;
+
+        const roomA = roomOrder.indexOf(a.room);
+        const roomB = roomOrder.indexOf(b.room);
+        if (roomA !== roomB) return roomA - roomB;
+
+        return new Date(a.datetimein) - new Date(b.datetimein); // ASC time
+      });
+    };
+
+    const pendingRoomsSorted = sortMeetings(pendingRoomsUnsorted);
+    const approvedRoomsSorted = sortMeetings(approvedRoomsUnsorted);
+
+    const pendingRooms = pendingRoomsSorted.slice((pendingPage - 1) * pageSize, pendingPage * pageSize);
+    const approvedRooms = approvedRoomsSorted.slice((approvedPage - 1) * pageSize, approvedPage * pageSize);
 
     res.render('admin-dashboard', {
       user,
