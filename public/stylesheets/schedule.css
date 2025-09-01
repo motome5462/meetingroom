@@ -172,7 +172,7 @@ html, body {
   border-radius: 32px;        /* More rounded corners */
   color: white;
   padding: 10px 16px;
-  font-size: 24px;
+  font-size: 20px;
   white-space: nowrap;
   text-shadow: 0 0 4px rgba(0,0,0,0.85);
   user-select: none;

@@ -95,7 +95,9 @@ function renderMeetings(meetings) {
     const participantCount = m.participants ? m.participants.length : 0;
     const meetingText = `
       <div class="meeting-line">${m.purpose}</div>
-      <div class="meeting-line">${m.employee?.name || 'ไม่ระบุ'} - ผู้เข้าร่วม ${participantCount} คน</div>
+      <div class="meeting-line">ผู้จอง ${m.employee?.name || 'ไม่ระบุ'} </div>
+      <div class="meeting-line">ผู้เข้าร่วม ${participantCount} คน</div>
+      
       <div class="meeting-line">
         ${new Date(m.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น. -
         ${new Date(m.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น.
@@ -112,19 +114,19 @@ function renderMeetings(meetings) {
 
     timeline.appendChild(meetingDiv);
 
-    requestAnimationFrame(() => {
-      const contentWrapper = meetingDiv.querySelector('.meeting-content-wrapper');
-      const content = meetingDiv.querySelector('.meeting-content');
-      const contentSet = content.querySelector('.meeting-set');
+    // requestAnimationFrame(() => {
+    //   const contentWrapper = meetingDiv.querySelector('.meeting-content-wrapper');
+    //   const content = meetingDiv.querySelector('.meeting-content');
+    //   const contentSet = content.querySelector('.meeting-set');
 
-      if (content.scrollWidth > contentWrapper.clientWidth) {
-        content.classList.add('marquee');
-        const clone = contentSet.cloneNode(true);
-        content.appendChild(clone);
-      } else {
-        content.classList.remove('marquee');
-      }
-    });
+    //   if (content.scrollWidth > contentWrapper.clientWidth) {
+    //     content.classList.add('marquee');
+    //     const clone = contentSet.cloneNode(true);
+    //     content.appendChild(clone);
+    //   } else {
+    //     content.classList.remove('marquee');
+    //   }
+    // });
   });
 }
 
