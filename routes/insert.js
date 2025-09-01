@@ -25,7 +25,7 @@ router.get('/api/employees/search', async (req, res) => {
 
   let pipeline = [];
 
-  if (!isNaN(q) && q.length >= 4) {
+  if (!isNaN(q) && q.length >= 3) {
     // 🔍 If 4+ digits and numeric: search by name or partial employeeid
     pipeline = [
       {
@@ -41,7 +41,7 @@ router.get('/api/employees/search', async (req, res) => {
           ]
         }
       },
-      { $limit: 10 }
+      { $limit: 100 }
     ];
   } else {
     // 🔍 Otherwise, search by name only
@@ -51,7 +51,7 @@ router.get('/api/employees/search', async (req, res) => {
           name: { $regex: q, $options: 'i' }
         }
       },
-      { $limit: 10 }
+      { $limit: 100 }
     ];
   }
 
