@@ -42,67 +42,10 @@ async function broadcastMonthlyUpdate(io) {
   io.emit('meetingsUpdated', { year, month, meetings: summary });
 }
 
-
-
 // 🧩 Admin Dashboard
-// exports.dashboard = async (req, res) => {
-//   try {
-//     const user = req.session.user || req.user;
-//     const pendingPage = parseInt(req.query.pendingPage) || 1;
-//     const approvedPage = parseInt(req.query.approvedPage) || 1;
-//     const pageSize = 4;
-//     const selectedDate = req.query.date || null;
-
-//     let approvedDateFilter = {};
-//     if (selectedDate) {
-//       const start = new Date(`${selectedDate}T00:00:00`);
-//       const end = new Date(`${selectedDate}T23:59:59`);
-//       approvedDateFilter.datetimein = { $gte: start, $lte: end };
-//     }
-
-//     const [pendingCount, approvedCount] = await Promise.all([
-//       MeetingList.countDocuments({ approval: 'รออนุมัติ' }),
-//       MeetingList.countDocuments({ approval: 'อนุมัติ', ...approvedDateFilter }),
-//     ]);
-
-//     const [pendingRooms, approvedRooms] = await Promise.all([
-//       MeetingList.find({ approval: 'รออนุมัติ' })
-//         .populate('employee', 'name')
-//         .populate('participants', 'name')
-//         .sort({ datetimein: -1 })
-//         .skip((pendingPage - 1) * pageSize)
-//         .limit(pageSize)
-//         .lean(),
-
-//       MeetingList.find({ approval: 'อนุมัติ', ...approvedDateFilter })
-//       .populate('employee', 'name')
-//         .populate('participants', 'name')
-//         .sort({ datetimein: -1 })
-//         .skip((approvedPage - 1) * pageSize)
-//         .limit(pageSize)
-//         .lean()
-//     ]);
-
-//     res.render('admin-dashboard', {
-//       user,
-//       pendingRooms,
-//       approvedRooms,
-//       pendingPage,
-//       approvedPage,
-//       pendingTotalPages: Math.ceil(pendingCount / pageSize),
-//       approvedTotalPages: Math.ceil(approvedCount / pageSize),
-//       selectedDate
-//     });
-//   } catch (err) {
-//     console.error('Dashboard error:', err);
-//     res.status(500).send('Server error');
-//   }
-// };
-
 exports.dashboard = async (req, res) => {
   try {
     const user = req.session.user || req.user;
-    const pendingPage = parseInt(req.query.pendingPage) || 1;
     const approvedPage = parseInt(req.query.approvedPage) || 1;
     const pageSize = 4;
     const selectedDate = req.query.date || null;
@@ -114,22 +57,12 @@ exports.dashboard = async (req, res) => {
       approvedDateFilter.datetimein = { $gte: start, $lte: end };
     }
 
-    const [pendingCount, approvedCount] = await Promise.all([
-      MeetingList.countDocuments({ approval: 'รออนุมัติ' }),
-      MeetingList.countDocuments({ approval: 'อนุมัติ', ...approvedDateFilter }),
-    ]);
+    const approvedCount = await MeetingList.countDocuments({ approval: 'อนุมัติ', ...approvedDateFilter });
 
-    const [pendingRoomsUnsorted, approvedRoomsUnsorted] = await Promise.all([
-      MeetingList.find({ approval: 'รออนุมัติ' })
+    const approvedRoomsUnsorted = await MeetingList.find({ approval: 'อนุมัติ', ...approvedDateFilter })
         .populate('employee', 'name')
         .populate('participants', 'name')
-        .lean(),
-
-      MeetingList.find({ approval: 'อนุมัติ', ...approvedDateFilter })
-        .populate('employee', 'name')
-        .populate('participants', 'name')
-        .lean()
-    ]);
+        .lean();
 
     // 🧠 Sorting logic: date DESC > room custom order > time ASC
     const roomOrder = ['ห้องประชุม 1', 'ห้องประชุม 2', 'ห้องประชุม 3'];
@@ -148,68 +81,20 @@ exports.dashboard = async (req, res) => {
       });
     };
 
-    const pendingRoomsSorted = sortMeetings(pendingRoomsUnsorted);
     const approvedRoomsSorted = sortMeetings(approvedRoomsUnsorted);
 
-    const pendingRooms = pendingRoomsSorted.slice((pendingPage - 1) * pageSize, pendingPage * pageSize);
     const approvedRooms = approvedRoomsSorted.slice((approvedPage - 1) * pageSize, approvedPage * pageSize);
 
     res.render('admin-dashboard', {
       user,
-      pendingRooms,
       approvedRooms,
-      pendingPage,
       approvedPage,
-      pendingTotalPages: Math.ceil(pendingCount / pageSize),
       approvedTotalPages: Math.ceil(approvedCount / pageSize),
       selectedDate
     });
   } catch (err) {
     console.error('Dashboard error:', err);
     res.status(500).send('Server error');
-  }
-};
-
-// ✅ Approve Meeting
-exports.approveRoom = async (req, res) => {
-  try {
-    const { id } = req.body;
-    if (!id) return res.status(400).json({ success: false, message: 'Missing meeting ID' });
-
-    await MeetingList.findByIdAndUpdate(id, { approval: 'อนุมัติ' });
-
-    const io = req.app.get('io');
-    if (io) {
-      await broadcastTodaySchedule(io);
-      await broadcastMonthlyUpdate(io);
-    }
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Approve room error:', err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
-
-// ❌ Reject Meeting
-exports.rejectRoom = async (req, res) => {
-  try {
-    const { id } = req.body;
-    if (!id) return res.status(400).json({ success: false, message: 'Missing meeting ID' });
-
-    const deleted = await MeetingList.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ success: false, message: 'Meeting not found' });
-
-    const io = req.app.get('io');
-    if (io) {
-      await broadcastTodaySchedule(io);
-      await broadcastMonthlyUpdate(io);
-    }
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Reject room error:', err);
-    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 

@@ -2,12 +2,15 @@ const express = require('express');
 const router = express.Router();
 const Meeting = require('../models/meetinglist');
 const Employee = require('../models/employee');
+const { isAuthenticated } = require('../middleware/authMiddleware');
 
 // GET: Render the meeting insert form page
-router.get('/', (req, res) => {
+router.get('/', isAuthenticated, (req, res) => {
   // Render 'insert' view with a default success flag set to false
   res.render('insert', { success: false });
 });
+
+// ... (โค้ดส่วนที่เหลือไม่มีการเปลี่ยนแปลง)
 
 // 🔍 Lookup employee name for the main requestor
 router.get('/api/employee/:id', async (req, res) => {
@@ -137,7 +140,7 @@ router.post('/', async (req, res) => {
       purpose,
       equipment,
       remark,
-      approval: "รออนุมัติ" // ตั้งค่านี้เสมอ เพื่อรอ admin อนุมัติ
+      approval: "อนุมัติ" // ตั้งค่านี้เสมอ
     });
 
     // Save the new meeting record in the database

@@ -19,38 +19,13 @@
         <span class="fw-bold">Welcome, <%= user.username %>!</span>
       </div>
 
-      <div class="row row-cols-1 row-cols-md-2 g-4 align-items-start">
-        <!-- Pending Approvals -->
-        <div class="col">
-          <div class="card border-warning shadow-sm">
-            <div class="card-header bg-warning text-white fw-bold fs-5">
-              รอดำเนินการอนุมัติ (<span id="pendingCount"><%= pendingRooms.length %></span>)
-            </div>
-            <div class="card-body">
-              <div id="pendingRoomsContainer"></div>
-            </div>
-            <script type="application/json" id="pendingRoomsData">
-              <%- JSON.stringify(pendingRooms || []) %>
-            </script>
-            <div class="card-footer text-center">
-              <% for (let i = 1; i <= pendingTotalPages; i++) { %>
-                <a href="/admin/admindashboard?pendingPage=<%= i %>&approvedPage=<%= approvedPage %><% if(selectedDate){ %>&date=<%= selectedDate %><% } %>" 
-                   class="btn btn-sm <%= i === pendingPage ? 'btn-warning' : 'btn-outline-warning' %> mx-1">
-                  <%= i %>
-                </a>
-              <% } %>
-            </div>
-          </div>
-        </div>
-
-        <!-- Approved Meetings -->
+      <div class="row row-cols-1 g-4 align-items-start">
         <div class="col">
           <div class="card border-success shadow-sm">
             <div class="card-header bg-success text-white d-flex justify-content-between align-items-center fs-5">
               <span class="fw-bold">รายการที่อนุมัติแล้ว (<%= approvedRooms.length %>)</span>
               <form method="GET" action="/admin/admindashboard" class="d-flex align-items-end" style="gap: 0.5rem;">
                 <input type="hidden" name="approvedPage" value="<%= approvedPage %>" />
-                <input type="hidden" name="pendingPage" value="<%= pendingPage %>" />
                 <input type="date" name="date" class="form-control form-control-sm" value="<%= selectedDate || '' %>" />
                 <button type="submit" class="btn btn-light btn-sm">ค้นหา</button>
               </form>
@@ -69,7 +44,7 @@
                         <%= room.participants?.length || 0 %> คน
                         <%= room.participants && room.participants.length > 0
                           ? '(' + room.participants.map(p => p.name.split(' ')[0]).join(', ') + ')'
-                        : '' %>
+                          : '' %>
                       </p>
                       <p class="card-text mb-1"><strong>วัตถุประสงค์:</strong> <%= room.purpose || '-' %></p>
                       <p class="card-text mb-1">
@@ -87,7 +62,7 @@
             </div>
             <div class="card-footer text-center">
               <% for (let i = 1; i <= approvedTotalPages; i++) { %>
-                <a href="/admin/admindashboard?approvedPage=<%= i %>&pendingPage=<%= pendingPage %><% if(selectedDate){ %>&date=<%= selectedDate %><% } %>" 
+                <a href="/admin/admindashboard?approvedPage=<%= i %><% if(selectedDate){ %>&date=<%= selectedDate %><% } %>"
                    class="btn btn-sm <%= i === approvedPage ? 'btn-success' : 'btn-outline-success' %> mx-1">
                   <%= i %>
                 </a>
@@ -96,17 +71,9 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- JavaScript -->
   <script src="/javascripts/admindashboard.js"></script>
-  <script>
-    const pendingRooms = JSON.parse(document.getElementById('pendingRoomsData').textContent);
-    if (typeof renderPendingRooms === 'function') {
-      renderPendingRooms(pendingRooms);
-    }
-  </script>
 </body>
 </html>
