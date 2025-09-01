@@ -32,10 +32,17 @@
           <li class="nav-item">
             <a class="nav-link" href="/insert">จองห้องประชุม</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/user/dashboard">ข้อมูลการจอง</a>
-          </li>
-        <% } %>
+          
+          <% if (user.role === 'admin') { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/admindashboard">ข้อมูลการจอง</a>
+            </li>
+          <% } else { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/user/dashboard">ข้อมูลการจอง</a>
+            </li>
+          <% } %>
+          <% } %>
         <li class="nav-item">
           <a class="nav-link" href="/schedule/monthly">ตารางรายเดือน</a>
         </li>
