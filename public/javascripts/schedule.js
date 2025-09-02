@@ -83,7 +83,7 @@ function renderMeetings(meetings) {
     const clampedEnd = Math.min(totalHours, end);
     const duration = clampedEnd - clampedStart;
     if (duration <= 0) return;
-
+    
     const meetingDiv = document.createElement('div');
     meetingDiv.classList.add('meeting-block');
     meetingDiv.style.backgroundColor = colors[i % colors.length];
@@ -97,7 +97,6 @@ function renderMeetings(meetings) {
       <div class="meeting-line">${m.purpose}</div>
       <div class="meeting-line">ผู้จอง ${m.employee?.name || 'ไม่ระบุ'} </div>
       <div class="meeting-line">ผู้เข้าร่วม ${participantCount} คน</div>
-      
       <div class="meeting-line">
         ${new Date(m.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น. -
         ${new Date(m.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} น.
@@ -111,22 +110,13 @@ function renderMeetings(meetings) {
         </div>
       </div>
     `;
+    
+    // Event Listener for Pop-up
+    meetingDiv.addEventListener('click', () => {
+      showMeetingPopup(m);
+    });
 
     timeline.appendChild(meetingDiv);
-
-    // requestAnimationFrame(() => {
-    //   const contentWrapper = meetingDiv.querySelector('.meeting-content-wrapper');
-    //   const content = meetingDiv.querySelector('.meeting-content');
-    //   const contentSet = content.querySelector('.meeting-set');
-
-    //   if (content.scrollWidth > contentWrapper.clientWidth) {
-    //     content.classList.add('marquee');
-    //     const clone = contentSet.cloneNode(true);
-    //     content.appendChild(clone);
-    //   } else {
-    //     content.classList.remove('marquee');
-    //   }
-    // });
   });
 }
 
@@ -186,7 +176,6 @@ socket.on('connect', () => {
 
 socket.on('scheduleUpdate', (meetings) => {
   console.log('[Socket] Schedule update received for date:', currentDateStr);
-  // We trust meetings correspond to currentDateStr
   currentMeetings = meetings;
   refreshSchedule();
 });
@@ -197,7 +186,79 @@ function requestSchedule(dateStr) {
   socket.emit('requestSchedule', { date: dateStr });
 }
 
-// === EVENT LISTENERS ===
+
+// === INITIALIZE ON LOAD ===
+function initialize() {
+  if (typeof selectedDateFromServer !== 'undefined' && selectedDateFromServer) {
+    currentDateStr = selectedDateFromServer;
+    if (datePicker) datePicker.value = currentDateStr;
+  }
+  currentMeetings = [];
+  refreshSchedule();
+  requestSchedule(currentDateStr);
+}
+
+// === POPUP FUNCTIONALITY (Wrapped in DOMContentLoaded) ===
+
+// Declare variables for modal elements, but assign them inside the listener
+let meetingModal, closeModal, modalPurpose, modalEmployee, modalParticipants, modalTime;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Now that the DOM is loaded, we can safely get the elements
+    meetingModal = document.getElementById('meetingModal');
+    closeModal = document.querySelector('.close-button');
+    modalPurpose = document.getElementById('modalPurpose');
+    modalEmployee = document.getElementById('modalEmployee');
+    modalParticipants = document.getElementById('modalParticipants');
+    modalTime = document.getElementById('modalTime');
+    
+    // Add event listeners for closing the modal
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        meetingModal.style.display = 'none';
+      });
+    }
+
+    window.addEventListener('click', e => {
+      if (e.target == meetingModal) {
+        meetingModal.style.display = 'none';
+      }
+    });
+});
+
+function showMeetingPopup(meeting) {
+  // Check if modal elements are ready before trying to use them
+  if (!meetingModal) {
+    console.error('Modal elements not found!');
+    return;
+  }
+
+  modalPurpose.textContent = meeting.purpose || '-';
+  modalEmployee.textContent = meeting.employee?.name || 'ไม่ระบุ';
+  
+  modalParticipants.innerHTML = '';
+
+  if (meeting.participants && meeting.participants.length > 0) {
+    meeting.participants.forEach(p => {
+      const li = document.createElement('li');
+      li.textContent = p.name;
+      modalParticipants.appendChild(li);
+    });
+  } else {
+    const li = document.createElement('li');
+    li.textContent = 'ไม่มีผู้เข้าร่วม';
+    modalParticipants.appendChild(li);
+  }
+
+  const startTime = new Date(meeting.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const endTime = new Date(meeting.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  modalTime.textContent = `${startTime} น. - ${endTime} น.`;
+
+  meetingModal.style.display = 'block';
+}
+
+
+// === OTHER EVENT LISTENERS ===
 if (datePicker) {
   datePicker.addEventListener('change', e => {
     currentDateStr = e.target.value;
@@ -208,15 +269,3 @@ if (datePicker) {
 window.addEventListener('resize', () => {
   refreshSchedule();
 });
-
-// === INITIALIZE ON LOAD ===
-function initialize() {
-  // If selectedDateFromServer is available (from server), use it as initial date
-  if (typeof selectedDateFromServer !== 'undefined' && selectedDateFromServer) {
-    currentDateStr = selectedDateFromServer;
-    if (datePicker) datePicker.value = currentDateStr;
-  }
-  currentMeetings = [];
-  refreshSchedule();
-  requestSchedule(currentDateStr);
-}

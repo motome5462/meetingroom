@@ -37,5 +37,17 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/javascripts/schedule.js"></script>
+
+    <div id="meetingModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h3>รายละเอียดการประชุม</h3>
+      <p><strong>หัวข้อ:</strong> <span id="modalPurpose"></span></p>
+      <p><strong>ผู้จอง:</strong> <span id="modalEmployee"></span></p>
+      <p><strong>ผู้เข้าร่วม:</strong></p>
+      <ul id="modalParticipants"></ul>
+      <p><strong>เวลา:</strong> <span id="modalTime"></span></p>
+    </div>
+  </div>
 </body>
 </html>
