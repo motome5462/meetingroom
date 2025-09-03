@@ -9,4 +9,12 @@ router.get('/dashboard', isAuthenticated, userController.dashboard);
 // Delete meeting route
 router.post('/dashboard/delete', isAuthenticated, express.json(), userController.deleteMeeting);
 
+// Cancel meeting route
+router.post('/dashboard/cancel', isAuthenticated, express.json(), userController.cancelMeeting);
+
+// Edit meeting routes
+router.get('/edit-meeting/:id', isAuthenticated, userController.editMeetingPage);
+router.post('/edit-meeting/:id', isAuthenticated, express.urlencoded({ extended: true }), userController.updateMeeting);
+
+
 module.exports = router;

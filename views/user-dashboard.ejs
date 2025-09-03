@@ -45,9 +45,9 @@
                     <%= new Date(room.datetimein).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %> -
                     <%= new Date(room.datetimeout).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
                   </p>
-                  <p class="card-text mb-1"><strong>สถานะ:</strong> <span class="badge bg-<%= room.approval === 'อนุมัติ' ? 'success' : 'warning' %>"><%= room.approval %></span></p>
-                  <a href="/admin/edit-meeting/<%= room._id %>" class="btn btn-warning btn-sm me-2">แก้ไข</a>
-                  <button class="btn btn-danger btn-sm" onclick="deleteMeeting('<%= room._id %>')">ลบ</button>
+                  <p class="card-text mb-1"><strong>สถานะ:</strong> <span class="badge bg-<%= room.approval === 'อนุมัติ' ? 'success' : 'danger' %>"><%= room.approval %></span></p>
+                  <a href="/user/edit-meeting/<%= room._id %>" class="btn btn-warning btn-sm me-2">แก้ไข</a>
+                  <button class="btn btn-danger btn-sm" onclick="cancelMeeting('<%= room._id %>')">ยกเลิก</button>
                 </div>
               </div>
             <% }); %>
