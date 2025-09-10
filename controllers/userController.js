@@ -1,28 +1,60 @@
 const MeetingList = require('../models/meetinglist');
 const Employee = require('../models/employee');
 
-// 🧩 User Dashboard
+// 🧩 User Dashboard (เวอร์ชันแก้ไขล่าสุด)
 exports.dashboard = async (req, res) => {
   try {
     const user = req.session.user;
 
-    // Find the employee record using the employeeid from the session
     const employee = await Employee.findOne({ employeeid: user.username });
     if (!employee) {
       return res.status(404).send('Employee not found');
     }
 
-    // Find all meetings for this employee
-    const meetings = await MeetingList.find({ employee: employee._id })
+    // 1. ดึงข้อมูลการประชุมทั้งหมด
+    const allMeetings = await MeetingList.find({ employee: employee._id })
       .populate('participants', 'name')
-      .sort({ datetimein: -1 })
       .lean();
 
+    // ฟังก์ชันสำหรับดึงหมายเลขห้อง
+    const getRoomNumber = (roomName) => {
+      if (typeof roomName !== 'string') return 0;
+      const match = roomName.trim().match(/\d+$/);
+      return match ? parseInt(match[0], 10) : 0;
+    };
+
+    // 2. สร้าง Array ใหม่และเรียงลำดับทั้งหมดในขั้นตอนเดียว
+    const sortedMeetings = [...allMeetings].sort((a, b) => {
+      const dateA = new Date(a.datetimein);
+      const dateB = new Date(b.datetimein);
+
+      // --- เงื่อนไขที่ 1: เรียงตามวัน (ล่าสุดขึ้นก่อน) ---
+      // ทำให้ข้อมูลของวันนี้ (Today) อยู่ก่อนข้อมูลของเมื่อวาน
+      const dayA = new Date(dateA.getFullYear(), dateA.getMonth(), dateA.getDate());
+      const dayB = new Date(dateB.getFullYear(), dateB.getMonth(), dateB.getDate());
+
+      if (dayB - dayA !== 0) {
+        return dayB - dayA;
+      }
+
+      // --- เงื่อนไขที่ 2: หากเป็นวันเดียวกัน ให้เรียงตาม "หมายเลขห้อง" ---
+      const roomNumberA = getRoomNumber(a.room);
+      const roomNumberB = getRoomNumber(b.room);
+      if (roomNumberA !== roomNumberB) {
+        return roomNumberA - roomNumberB;
+      }
+
+      // --- เงื่อนไขที่ 3: หากเป็นห้องเดียวกัน ให้เรียงตาม "เวลา" ---
+      return dateA - dateB;
+    });
+
+    // 3. ส่งข้อมูลที่เรียงลำดับแล้วไปแสดงผล
     res.render('user-dashboard', {
       user,
-      employeeName: employee.name, // Pass employee's full name to the view
-      meetings
+      employeeName: employee.name,
+      meetings: sortedMeetings
     });
+
   } catch (err) {
     console.error('User dashboard error:', err);
     res.status(500).send('Server error');
@@ -126,7 +158,6 @@ exports.cancelMeeting = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
-
 // ✏️ Show Edit Meeting Page
 exports.editMeetingPage = async (req, res) => {
   try {
