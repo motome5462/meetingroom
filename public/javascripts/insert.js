@@ -57,15 +57,12 @@ function toggleCustomPurpose() {
 
 // === Employee ID Name Display ===
 function setupEmployeeNameLookup() {
-  const input = document.querySelector('input[name="employeeid"]');
-  const display = document.createElement('div');
-  display.className = 'text-muted mt-1';
-  input.parentNode.appendChild(display);
+  const input = document.getElementById('employeeidInput');
+  const display = document.getElementById('employeeidName');
 
-  input.addEventListener('input', async () => {
+  async function updateName() {
     const id = input.value.trim();
     if (!id) return display.textContent = '';
-
     try {
       const res = await fetch(`/insert/api/employee/${id}`);
       const data = await res.json();
@@ -73,7 +70,12 @@ function setupEmployeeNameLookup() {
     } catch {
       display.textContent = '❌ ไม่พบข้อมูลพนักงาน';
     }
-  });
+  }
+
+  input.addEventListener('input', updateName);
+
+  // เรียกเมื่อเลือกจาก autocomplete ด้วย
+  input.addEventListener('selected', updateName);
 }
 
 // === Participant Autocomplete ===
@@ -87,6 +89,9 @@ function enableParticipantSearch(input) {
 
       const res = await fetch(`/insert/api/employees/search?q=${q}`);
       const data = await res.json();
+
+      // ลบ autocomplete เดิมก่อนสร้างใหม่
+      input.parentNode.querySelectorAll('.autocomplete').forEach(el => el.remove());
 
       const list = document.createElement('ul');
       list.className = 'list-group position-absolute autocomplete';
@@ -103,14 +108,29 @@ function enableParticipantSearch(input) {
         li.textContent = `${e.id} - ${e.name} `;
         li.onclick = () => {
           input.value = e.id;
-          list.remove();
+          // ปิด autocomplete ด้วย setTimeout เพื่อให้ event input ทำงานก่อน
+          setTimeout(() => {
+            if (list.parentNode) list.remove();
+          }, 0);
+
+          // ถ้าเป็น employeeidInput ให้แสดงชื่อทันที
+          if (input.id === 'employeeidInput') {
+            const event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
+          }
         };
         list.appendChild(li);
       });
 
-      input.parentNode.querySelectorAll('.autocomplete').forEach(el => el.remove());
       input.parentNode.appendChild(list);
     }, 300);
+  });
+
+  // ปิด autocomplete เมื่อคลิกข้างนอก
+  document.addEventListener('click', function handler(e) {
+    if (!input.parentNode.contains(e.target)) {
+      input.parentNode.querySelectorAll('.autocomplete').forEach(el => el.remove());
+    }
   });
 }
 
@@ -145,6 +165,7 @@ function setupFormSubmission() {
 // === INIT ===
 document.addEventListener('DOMContentLoaded', () => {
   toggleCustomPurpose();
+  enableParticipantSearch(document.getElementById('employeeidInput'));
   setupEmployeeNameLookup();
   setupFormSubmission();
   document.getElementById('purposeSelect').addEventListener('change', toggleCustomPurpose);
