@@ -41,3 +41,8 @@ async function deleteMeeting(id) {
       alert('Error deleting meeting: ' + error.message);
     }
   }
+function showMoreRooms(room, btn) {
+  const items = document.querySelectorAll('.extra-' + room);
+  items.forEach(el => el.classList.remove('d-none'));
+  if (btn) btn.style.display = 'none';
+}

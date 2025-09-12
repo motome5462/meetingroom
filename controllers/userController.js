@@ -5,16 +5,30 @@ const Employee = require('../models/employee');
 exports.dashboard = async (req, res) => {
   try {
     const user = req.session.user;
+    const { room: roomFilter, date: dateFilter } = req.query;
 
     const employee = await Employee.findOne({ employeeid: user.username });
     if (!employee) {
       return res.status(404).send('Employee not found');
     }
 
-    // 1. ดึงข้อมูลการประชุมทั้งหมด
+    // 1. ดึงข้อมูลการประชุมทั้งหมดของ user คนนี้มาก่อน
     const allMeetings = await MeetingList.find({ employee: employee._id })
       .populate('participants', 'name')
       .lean();
+
+    let filteredMeetings = allMeetings;
+
+    // --- ปรับ logic: กรองห้องหรือวันที่ อย่างใดอย่างหนึ่งหรือทั้งสองอย่างก็ได้ ---
+    if (roomFilter && roomFilter.trim() !== "") {
+      filteredMeetings = filteredMeetings.filter(meeting => meeting.room.trim() === roomFilter.trim());
+    }
+    if (dateFilter && dateFilter.trim() !== "") {
+      filteredMeetings = filteredMeetings.filter(m => {
+        const meetingDate = new Date(m.datetimein).toISOString().split('T')[0];
+        return meetingDate === dateFilter;
+      });
+    }
 
     // ฟังก์ชันสำหรับดึงหมายเลขห้อง
     const getRoomNumber = (roomName) => {
@@ -23,13 +37,11 @@ exports.dashboard = async (req, res) => {
       return match ? parseInt(match[0], 10) : 0;
     };
 
-    // 2. สร้าง Array ใหม่และเรียงลำดับทั้งหมดในขั้นตอนเดียว
-    const sortedMeetings = [...allMeetings].sort((a, b) => {
+    // 2. เรียงลำดับผลลัพธ์
+    const sortedMeetings = [...filteredMeetings].sort((a, b) => {
       const dateA = new Date(a.datetimein);
       const dateB = new Date(b.datetimein);
 
-      // --- เงื่อนไขที่ 1: เรียงตามวัน (ล่าสุดขึ้นก่อน) ---
-      // ทำให้ข้อมูลของวันนี้ (Today) อยู่ก่อนข้อมูลของเมื่อวาน
       const dayA = new Date(dateA.getFullYear(), dateA.getMonth(), dateA.getDate());
       const dayB = new Date(dateB.getFullYear(), dateB.getMonth(), dateB.getDate());
 
@@ -37,14 +49,12 @@ exports.dashboard = async (req, res) => {
         return dayB - dayA;
       }
 
-      // --- เงื่อนไขที่ 2: หากเป็นวันเดียวกัน ให้เรียงตาม "หมายเลขห้อง" ---
       const roomNumberA = getRoomNumber(a.room);
       const roomNumberB = getRoomNumber(b.room);
       if (roomNumberA !== roomNumberB) {
         return roomNumberA - roomNumberB;
       }
 
-      // --- เงื่อนไขที่ 3: หากเป็นห้องเดียวกัน ให้เรียงตาม "เวลา" ---
       return dateA - dateB;
     });
 
@@ -52,7 +62,9 @@ exports.dashboard = async (req, res) => {
     res.render('user-dashboard', {
       user,
       employeeName: employee.name,
-      meetings: sortedMeetings
+      meetings: sortedMeetings,
+      roomFilter,
+      dateFilter
     });
 
   } catch (err) {
@@ -60,6 +72,7 @@ exports.dashboard = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+// ... (ส่วนที่เหลือของ controller เหมือนเดิม)
 
 // 🗑️ Delete Meeting
 exports.deleteMeeting = async (req, res) => {
