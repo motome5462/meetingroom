@@ -93,6 +93,7 @@ router.post('/', async (req, res) => {
 
     const conflict = await Meeting.findOne({
       room,
+      approval: { $ne: 'ยกเลิก' }, // <-- This is the added line
       datetimein: { $lt: datetimeout },
       datetimeout: { $gt: datetimein }
     });
@@ -116,6 +117,7 @@ router.post('/', async (req, res) => {
     await meeting.save();
 
     // === ส่งอีเมลแจ้งเตือนหลังบันทึก meeting ===
+    
     const populatedMeeting = await Meeting.findById(meeting._id)
       .populate('employee', 'name email')
       .populate('participants', 'name email');
@@ -142,6 +144,7 @@ const htmlToParticipants = `
 
     const result = await sendEmail('', subjectToParticipants, htmlToParticipants, bccList);
     console.log('Send result (insert):', result);
+
 
     // === จบส่วนส่งอีเมล ===
 
