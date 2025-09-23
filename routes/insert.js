@@ -3,14 +3,12 @@ const router = express.Router();
 const Meeting = require('../models/meetinglist');
 const Employee = require('../models/employee');
 const { isAuthenticated } = require('../middleware/authMiddleware');
+const sendEmail = require('../utils/mailer'); // เพิ่มสำหรับส่งอีเมล
 
 // GET: Render the meeting insert form page
 router.get('/', isAuthenticated, (req, res) => {
-  // Render 'insert' view with a default success flag set to false
   res.render('insert', { success: false });
 });
-
-// ... (โค้ดส่วนที่เหลือไม่มีการเปลี่ยนแปลง)
 
 // 🔍 Lookup employee name for the main requestor
 router.get('/api/employee/:id', async (req, res) => {
@@ -22,35 +20,20 @@ router.get('/api/employee/:id', async (req, res) => {
 
 router.get('/api/employees/search', async (req, res) => {
   const q = req.query.q || '';
-
   let pipeline = [];
 
   if (!isNaN(q) && q.length >= 3) {
-    // 🔍 If 4+ digits and numeric: search by name or partial employeeid
     pipeline = [
-      {
-        $addFields: {
-          employeeidStr: { $toString: '$employeeid' }
-        }
-      },
-      {
-        $match: {
-          $or: [
-            { name: { $regex: q, $options: 'i' } },
-            { employeeidStr: { $regex: q } }
-          ]
-        }
-      },
+      { $addFields: { employeeidStr: { $toString: '$employeeid' } } },
+      { $match: { $or: [
+        { name: { $regex: q, $options: 'i' } },
+        { employeeidStr: { $regex: q } }
+      ] } },
       { $limit: 100 }
     ];
   } else {
-    // 🔍 Otherwise, search by name only
     pipeline = [
-      {
-        $match: {
-          name: { $regex: q, $options: 'i' }
-        }
-      },
+      { $match: { name: { $regex: q, $options: 'i' } } },
       { $limit: 100 }
     ];
   }
@@ -69,56 +52,45 @@ router.get('/api/employees/search', async (req, res) => {
 // POST: Handle meeting reservation submission
 router.post('/', async (req, res) => {
   try {
-    // Extract submitted fields from request body
     let {
       employeeid,
       date,
       timein,
       timeout,
       room,
-      participants = [],  // default empty array if not provided
+      participants = [],
       purpose,
       customPurpose,
       equipment,
       remark
     } = req.body;
 
-    // If user selected "อื่น ๆ" (Other) as purpose and provided a customPurpose,
-    // use the trimmed customPurpose value instead of the default
     if (purpose === 'อื่น ๆ' && customPurpose && customPurpose.trim() !== '') {
       purpose = customPurpose.trim();
     }
 
-    // Construct full Date objects for start and end datetime of the meeting
     const datetimein = new Date(`${date}T${timein}`);
     const datetimeout = new Date(`${date}T${timeout}`);
 
-    // Validate that start time is before end time
     if (datetimein >= datetimeout) {
-      return res.status(400).send('⛔ เวลาเริ่มต้นต้องน้อยกว่าหมดเวลา');  // "Start time must be before end time"
+      return res.status(400).send('⛔ เวลาเริ่มต้นต้องน้อยกว่าหมดเวลา');
     }
 
-    // Find employee who is requesting the meeting by their employeeid
     const employee = await Employee.findOne({ employeeid: parseInt(employeeid) });
     if (!employee) {
-      // Redirect back with error if employee not found
-        return res.status(400).json({ error: '❌ รหัสพนักงานไม่ถูกต้อง' });
+      return res.status(400).json({ error: '❌ รหัสพนักงานไม่ถูกต้อง' });
     }
 
-    // Normalize participants input: ensure it's an array of valid employee IDs (integers)
+    // Normalize participants input
     const rawIds = Array.isArray(participants) ? participants : [participants];
     const participantIds = rawIds
-      .filter(id => id && id.trim() !== '')  // remove empty or blank entries
+      .filter(id => id && id.trim() !== '')
       .map(id => parseInt(id));
 
-    // Query participant employees by their IDs to get their documents
     const participantDocs = await Employee.find({
       employeeid: { $in: participantIds }
     });
 
-    // Check for time conflicts with existing meetings in the same room
-    // Conflict means any existing meeting where start time < new end time
-    // AND end time > new start time
     const conflict = await Meeting.findOne({
       room,
       datetimein: { $lt: datetimeout },
@@ -126,11 +98,9 @@ router.post('/', async (req, res) => {
     });
 
     if (conflict) {
-      // If conflict found, reject the request with an error message
-      return res.status(400).json({ error: '❌ ห้องนี้ถูกจองไว้แล้วในช่วงเวลานี้' });  // "Room is already booked at this time"
+      return res.status(400).json({ error: '❌ ห้องนี้ถูกจองไว้แล้วในช่วงเวลานี้' });
     }
 
-    // Create a new Meeting document with provided details
     const meeting = new Meeting({
       employee: employee._id,
       datetimein,
@@ -140,37 +110,62 @@ router.post('/', async (req, res) => {
       purpose,
       equipment,
       remark,
-      approval: "อนุมัติ" // ตั้งค่านี้เสมอ
+      approval: "อนุมัติ"
     });
 
-    // Save the new meeting record in the database
     await meeting.save();
+
+    // === ส่งอีเมลแจ้งเตือนหลังบันทึก meeting ===
+    const populatedMeeting = await Meeting.findById(meeting._id)
+      .populate('employee', 'name email')
+      .populate('participants', 'name email');
+
+    console.log('populatedMeeting.employee:', populatedMeeting.employee);
+    console.log('populatedMeeting.participants:', populatedMeeting.participants);
+
+    const recipients = new Set(populatedMeeting.participants.map(p => p.email).filter(Boolean));
+    if (populatedMeeting.employee && populatedMeeting.employee.email) recipients.add(populatedMeeting.employee.email);
+    const bccList = Array.from(recipients).join(',');
+
+    console.log('BCC (insert):', bccList);
+
+    const subjectToParticipants = `คำเชิญเข้าร่วมประชุม: ${populatedMeeting.purpose}`;
+const htmlToParticipants = `
+  <p>เรียน ผู้เข้าร่วมประชุม,</p>
+  <p>คุณได้รับเชิญให้เข้าร่วมการประชุมเรื่อง "<b>${populatedMeeting.purpose}</b>" โดยคุณ ${populatedMeeting.employee.name}</p>
+  <p><b>วันเวลา:</b> ${new Date(populatedMeeting.datetimein).toLocaleDateString('th-TH')} เวลา ${new Date(populatedMeeting.datetimein).toLocaleTimeString('th-TH')} - ${new Date(populatedMeeting.datetimeout).toLocaleTimeString('th-TH')}</p>
+  <p><b>ห้อง:</b> ${populatedMeeting.room}</p>
+  <p><i>*** การประชุมนี้กำลังรอการอนุมัติจากผู้ดูแลระบบ ***</i></p>
+  <hr>
+  <p>โปรดตรวจสอบรายละเอียดในระบบ MeetingRoom</p>
+`;
+
+    const result = await sendEmail('', subjectToParticipants, htmlToParticipants, bccList);
+    console.log('Send result (insert):', result);
+
+    // === จบส่วนส่งอีเมล ===
 
     // After saving, emit an update event via socket.io to update clients in real-time
     const io = req.app.get('io');
-    const today = new Date().toISOString().substring(0, 10);  // Current date in 'YYYY-MM-DD'
-    
-    // Fetch all meetings for today, including employee and participants' names
+    const today = new Date().toISOString().substring(0, 10);
+
     const todayMeetings = await Meeting.find({
       datetimein: {
         $gte: new Date(`${today}T00:00:00`),
         $lte: new Date(`${today}T23:59:59`)
       }
     })
-      .populate('employee', 'name')       // populate employee's name
-      .populate('participants', 'name')   // populate participants' names
+      .populate('employee', 'name')
+      .populate('participants', 'name')
       .lean();
 
-    // Broadcast updated meeting schedule to all connected clients
     io.emit('scheduleUpdate', todayMeetings);
 
-    // Redirect back to the insert form page with a success query flag
     res.redirect('/insert?success=1');
 
   } catch (err) {
-    // Log error for debugging and respond with 500 status and error message
     console.error('❌ Meeting Insert Error:', err);
-    res.status(500).send('เกิดข้อผิดพลาดในการบันทึกข้อมูล');  // "An error occurred while saving data"
+    res.status(500).send('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
   }
 });
 

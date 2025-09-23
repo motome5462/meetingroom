@@ -6,6 +6,10 @@ const { isAuthenticated } = require('../middleware/authMiddleware');
 // User dashboard route
 router.get('/dashboard', isAuthenticated, userController.dashboard);
 
+// 👇 **เพิ่ม Route นี้เข้าไป**
+// Create meeting route
+router.post('/dashboard/create', isAuthenticated, express.urlencoded({ extended: true }), userController.createMeeting);
+
 // Delete meeting route
 router.post('/dashboard/delete', isAuthenticated, express.json(), userController.deleteMeeting);
 
