@@ -284,7 +284,7 @@ exports.updateMeeting = async (req, res) => {
     }
 
     const updatedMeeting = await MeetingList.findByIdAndUpdate(id, 
-        { datetimein, datetimeout, room, purpose, participants: participantIds, equipment, remark, approval: 'รออนุมัติ' },
+        { datetimein, datetimeout, room, purpose, participants: participantIds, equipment, remark, approval: 'อนุมัติ' },
         { new: true }
     )
     .populate('employee', 'name email')
