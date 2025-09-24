@@ -75,12 +75,12 @@
 
 // module.exports = app;
 
-
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const session = require('express-session');
+const flash = require('connect-flash'); // ➕ เพิ่มการ import flash
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
@@ -109,8 +109,14 @@ app.use(session({
   cookie: { secure: false } // set to true if using https
 }));
 
+// ➕ ตั้งค่า connect-flash middleware
+app.use(flash());
+
+// ➕ ตั้งค่า global variables สำหรับ flash messages
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
   next();
 });
 
@@ -124,6 +130,7 @@ app.use('/user', userRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
+  const createError = require('http-errors');
   next(createError(404));
 });
 

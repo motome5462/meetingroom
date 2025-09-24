@@ -63,7 +63,7 @@ exports.dashboard = async (req, res) => {
   }
 };
 
-// ➕ Create Meeting (with email notification for all)
+// ➕ Create Meeting (with email notification for all) - (แก้ไขแล้ว)
 exports.createMeeting = async (req, res) => {
   console.log('===> createMeeting called');
   try {
@@ -83,17 +83,21 @@ exports.createMeeting = async (req, res) => {
 
     const finalPurpose = (purpose === 'อื่น ๆ' && customPurpose) ? customPurpose : purpose;
 
-    // เพิ่ม log เพื่อ debug
-    console.log('Raw participants from form:', participants);
-
     let participantIds = [];
     if (participants) {
-      // รองรับทั้งกรณีเป็น array หรือ string
-      const ids = Array.isArray(participants) ? participants.map(id => Number(id)) : [Number(participants)];
-      console.log('Converted participant ids:', ids);
-      const found = await Employee.find({ employeeid: { $in: ids } });
-      participantIds = found.map(emp => emp._id);
-      console.log('participantIds:', participantIds);
+        const idsOrNames = (Array.isArray(participants) ? participants : [participants])
+            .map(p => p.trim())
+            .filter(p => p); // ลบค่าว่างออก
+
+        const numbers = idsOrNames.map(val => parseInt(val, 10)).filter(num => !isNaN(num));
+        const strings = idsOrNames.filter(val => isNaN(parseInt(val, 10)));
+
+        const foundByIds = numbers.length > 0 ? await Employee.find({ employeeid: { $in: numbers } }) : [];
+        const foundByNames = strings.length > 0 ? await Employee.find({ name: { $in: strings } }) : [];
+      
+        const foundEmployees = [...foundByIds, ...foundByNames];
+        const uniqueEmployeeIds = [...new Map(foundEmployees.map(item => [item._id.toString(), item._id])).values()];
+        participantIds = uniqueEmployeeIds;
     }
 
     if (!participantIds.some(id => id.equals(employee._id))) {
@@ -112,14 +116,9 @@ exports.createMeeting = async (req, res) => {
       .populate('employee', 'name email')
       .populate('participants', 'name email');
 
-    console.log('populatedMeeting.employee:', populatedMeeting.employee);
-    console.log('populatedMeeting.participants:', populatedMeeting.participants);
-
     const recipients = new Set(populatedMeeting.participants.map(p => p.email).filter(Boolean));
     if (populatedMeeting.employee && populatedMeeting.employee.email) recipients.add(populatedMeeting.employee.email);
     const bccList = Array.from(recipients).join(',');
-
-    console.log('BCC (createMeeting):', bccList);
 
     const subjectToParticipants = `คำเชิญเข้าร่วมประชุม: ${populatedMeeting.purpose}`;
     const htmlToParticipants = `
@@ -133,7 +132,6 @@ exports.createMeeting = async (req, res) => {
     `;
 
     const result = await sendEmail('', subjectToParticipants, htmlToParticipants, bccList);
-    console.log('Send result (participants):', result);
 
     if (result) {
       req.flash('success_msg', 'ส่งคำขอจองห้องประชุมและแจ้งเตือนผู้เข้าร่วมทางอีเมลเรียบร้อยแล้ว');
@@ -175,17 +173,11 @@ exports.deleteMeeting = async (req, res) => {
         <p>การประชุมเรื่อง "<b>${deletedMeeting.purpose}</b>" ในวันที่ ${new Date(deletedMeeting.datetimein).toLocaleDateString('th-TH')} ได้ถูกลบออกจากระบบโดยผู้จองแล้ว</p>
     `;
 
-    console.log('populatedMeeting.employee:', deletedMeeting.employee);
-    console.log('populatedMeeting.participants:', deletedMeeting.participants);
-
     const recipients = new Set(deletedMeeting.participants.map(p => p.email).filter(Boolean));
     if (deletedMeeting.employee && deletedMeeting.employee.email) recipients.add(deletedMeeting.employee.email);
     const bccList = Array.from(recipients).join(',');
 
-    console.log('BCC (deleteMeeting):', bccList);
-
-    const result = await sendEmail('', subject, htmlBody, bccList);
-    console.log('Send result (deleteMeeting):', result);
+    await sendEmail('', subject, htmlBody, bccList);
 
     res.json({ success: true });
   } catch (err) {
@@ -223,17 +215,11 @@ exports.cancelMeeting = async (req, res) => {
         <p>ขออภัยในความไม่สะดวก</p>
     `;
 
-    console.log('populatedMeeting.employee:', canceledMeeting.employee);
-    console.log('populatedMeeting.participants:', canceledMeeting.participants);
-
     const recipients = new Set(canceledMeeting.participants.map(p => p.email).filter(Boolean));
     if (canceledMeeting.employee && canceledMeeting.employee.email) recipients.add(canceledMeeting.employee.email);
     const bccList = Array.from(recipients).join(',');
 
-    console.log('BCC (cancelMeeting):', bccList);
-
-    const result = await sendEmail('', subject, htmlBody, bccList);
-    console.log('Send result (cancelMeeting):', result);
+    await sendEmail('', subject, htmlBody, bccList);
 
     res.json({ success: true });
   } catch (err) {
@@ -261,11 +247,11 @@ exports.editMeetingPage = async (req, res) => {
   }
 };
 
-// 🔄 Update Meeting (with email notification for all)
+// 🔄 Update Meeting (with email notification for all) - (แก้ไขแล้ว)
 exports.updateMeeting = async (req, res) => {
   try {
     const { id } = req.params;
-    const { datetimein, datetimeout, room, purpose, participants, equipment, remark } = req.body;
+    const { date, timein, timeout, room, purpose, participants, equipment, remark, customPurpose } = req.body;
 
     const meeting = await MeetingList.findById(id);
     if (!meeting) return res.status(404).send('Meeting not found');
@@ -276,43 +262,59 @@ exports.updateMeeting = async (req, res) => {
       return res.status(403).send('Permission denied.');
     }
 
+    // เวลาประชุม
+    const datetimein = new Date(`${date}T${timein}`);
+    const datetimeout = new Date(`${date}T${timeout}`);
+
+    // วัตถุประสงค์
+    const finalPurpose = (purpose === 'อื่น ๆ' && customPurpose) ? customPurpose : purpose;
+
+    // --- แก้ไขตรงนี้ ---
     let participantIds = [];
     if (participants) {
-      const ids = Array.isArray(participants) ? participants.map(id => Number(id)) : [Number(participants)];
-      const found = await Employee.find({ employeeid: { $in: ids } });
-      participantIds = found.map(emp => emp._id);
+      // รองรับทั้งกรณีเป็น array หรือ string
+      const arr = Array.isArray(participants) ? participants : [participants];
+      // แยกเลขกับชื่อ
+      const numbers = arr.map(val => parseInt(val, 10)).filter(num => !isNaN(num));
+      const strings = arr.filter(val => isNaN(parseInt(val, 10)) && val && val.trim() !== '');
+      // หา Employee จาก employeeid และ name
+      const foundByIds = numbers.length > 0 ? await Employee.find({ employeeid: { $in: numbers } }) : [];
+      const foundByNames = strings.length > 0 ? await Employee.find({ name: { $in: strings } }) : [];
+      // รวมและเอาไม่ซ้ำ
+      const foundEmployees = [...foundByIds, ...foundByNames];
+      const uniqueEmployeeIds = [...new Map(foundEmployees.map(item => [item._id.toString(), item._id])).values()];
+      participantIds = uniqueEmployeeIds;
+    }
+    // ใส่ผู้จองกลับเข้าไปเสมอถ้ายังไม่มี
+    if (!participantIds.some(pId => pId.equals(employee._id))) {
+      participantIds.push(employee._id);
     }
 
     const updatedMeeting = await MeetingList.findByIdAndUpdate(id, 
-        { datetimein, datetimeout, room, purpose, participants: participantIds, equipment, remark, approval: 'อนุมัติ' },
+        { datetimein, datetimeout, room, purpose: finalPurpose, participants: participantIds, equipment, remark, approval: 'อนุมัติ' },
         { new: true }
     )
     .populate('employee', 'name email')
     .populate('participants', 'name email');
 
+    // ส่งอีเมลแจ้งเตือน (เหมือนเดิม)
     const subject = `[อัปเดต] การประชุม: ${updatedMeeting.purpose}`;
     const htmlBody = `
         <p>เรียน ผู้เข้าร่วมประชุมทุกท่าน,</p>
         <p>การประชุมเรื่อง "<b>${updatedMeeting.purpose}</b>" มีการเปลี่ยนแปลงข้อมูล และต้องรอการอนุมัติใหม่</p>
         <ul>
             <li><b>ห้องประชุม:</b> ${updatedMeeting.room}</li>
-            <li><b>วันเวลาใหม่:</b> ${new Date(updatedMeeting.datetimein).toLocaleString('th-TH')}</li>
+            <li><b>วันเวลาใหม่:</b> ${new Date(updatedMeeting.datetimein).toLocaleDateString('th-TH')} เวลา ${new Date(updatedMeeting.datetimein).toLocaleTimeString('th-TH')} - ${new Date(updatedMeeting.datetimeout).toLocaleTimeString('th-TH')}</li>
         </ul>
         <hr>
         <p>โปรดตรวจสอบรายละเอียดในระบบ MeetingRoom</p>
     `;
     
-    console.log('populatedMeeting.employee:', updatedMeeting.employee);
-    console.log('populatedMeeting.participants:', updatedMeeting.participants);
-
     const recipients = new Set(updatedMeeting.participants.map(p => p.email).filter(Boolean));
     if (updatedMeeting.employee && updatedMeeting.employee.email) recipients.add(updatedMeeting.employee.email);
     const bccList = Array.from(recipients).join(',');
 
-    console.log('BCC (updateMeeting):', bccList);
-
     const result = await sendEmail('', subject, htmlBody, bccList);
-    console.log('Send result (updateMeeting):', result);
 
     if (result) {
       req.flash('success_msg', 'อัปเดตข้อมูลและส่งอีเมลแจ้งเตือนผู้เกี่ยวข้องเรียบร้อยแล้ว');
